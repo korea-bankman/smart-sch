@@ -39,13 +39,14 @@ export default function App() {
     if (!running) {
       if (frameRef.current) window.cancelAnimationFrame(frameRef.current);
       frameRef.current = null;
+      lastFrameRef.current = 0;
       return;
     }
     const animate = (time: number) => {
       const delta = lastFrameRef.current ? time - lastFrameRef.current : 16;
       lastFrameRef.current = time;
       progressAccumulatorRef.current += delta;
-      if (progressAccumulatorRef.current >= 500) {
+      if (progressAccumulatorRef.current >= 140) {
         const step = progressAccumulatorRef.current;
         progressAccumulatorRef.current = 0;
         setPatients((current) => current.map((patient) => ({ ...patient, progress: (patient.progress + step / 18000) % 1 })));
@@ -203,7 +204,7 @@ export default function App() {
         {audienceMode !== "patient" && <ViewTabs value={viewMode} onChange={setViewMode} />}
 
         <section className="grid gap-4 xl:grid-cols-[1.55fr_0.85fr]">
-          <DigitalTwin rooms={rooms} patients={patients} selectedPatient={selectedPatient} aiEnabled={aiEnabled} />
+          <DigitalTwin rooms={rooms} patients={patients} selectedPatient={selectedPatient} aiEnabled={aiEnabled} running={running} />
           <div className="grid gap-4">
             {audienceMode === "patient" ? (
               <PatientCompanionPanel patient={selectedPatient} rooms={rooms} onOpenDetail={() => setPatientDetailOpen(true)} />

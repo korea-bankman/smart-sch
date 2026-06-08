@@ -10,6 +10,7 @@ type Props = {
   patients: Patient[];
   selectedPatient: Patient | undefined;
   aiEnabled: boolean;
+  running: boolean;
 };
 
 const floorOutline: Array<[number, number]> = [
@@ -41,7 +42,7 @@ function makeShape() {
   return shape;
 }
 
-function Floor({ floor }: { floor: 1 | 2 | 3 }) {
+function Floor({ floor }: { floor: 1 | 2 }) {
   const texture1 = useLoader(THREE.TextureLoader, "/floors/floor_1f.png");
   const texture2 = useLoader(THREE.TextureLoader, "/floors/floor_2f.png");
   texture1.colorSpace = THREE.SRGBColorSpace;
@@ -53,18 +54,17 @@ function Floor({ floor }: { floor: 1 | 2 | 3 }) {
     <group position={[0, y, 0]}>
       <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
         <shapeGeometry args={[shape]} />
-        <meshStandardMaterial color={floor === 3 ? "#152235" : "#101b2d"} transparent opacity={0.78} roughness={0.8} metalness={0.1} />
+        <meshStandardMaterial color="#101b2d" transparent opacity={0.78} roughness={0.8} metalness={0.1} />
       </mesh>
       <mesh position={[0, 0.04, 0]} rotation={[-Math.PI / 2, 0, 0]}>
         <shapeGeometry args={[shape]} />
-        <meshBasicMaterial color={floor === 1 ? "#28d3ff" : floor === 2 ? "#35d07f" : "#f6c851"} transparent opacity={0.055} />
+        <meshBasicMaterial color={floor === 1 ? "#28d3ff" : "#35d07f"} transparent opacity={0.065} />
       </mesh>
-      {floor < 3 && (
-        <mesh position={[0, 0.025, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-          <planeGeometry args={[7.5, 8.8]} />
-          <meshBasicMaterial map={floor === 1 ? texture1 : texture2} transparent opacity={0.26} />
-        </mesh>
-      )}
+      <mesh position={[0, 0.025, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <planeGeometry args={[7.5, 8.8]} />
+        <meshBasicMaterial map={floor === 1 ? texture1 : texture2} transparent opacity={0.28} />
+      </mesh>
+      <FloorScanner floor={floor} />
       <mesh position={[0, -0.12, 0]} rotation={[-Math.PI / 2, 0, 0]}>
         <shapeGeometry args={[shape]} />
         <meshStandardMaterial color="#20324c" />
@@ -73,6 +73,25 @@ function Floor({ floor }: { floor: 1 | 2 | 3 }) {
         {floor}F
       </Text>
     </group>
+  );
+}
+
+function FloorScanner({ floor }: { floor: 1 | 2 }) {
+  const ref = useRef<THREE.Mesh>(null);
+  const y = 0.08;
+
+  useFrame(({ clock }) => {
+    if (!ref.current) return;
+    const pulse = 0.82 + Math.sin(clock.elapsedTime * 1.8 + floor) * 0.08;
+    ref.current.scale.set(pulse, pulse, pulse);
+    ref.current.rotation.z = clock.elapsedTime * 0.15;
+  });
+
+  return (
+    <mesh ref={ref} position={[0, y, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+      <ringGeometry args={[2.65, 2.72, 96]} />
+      <meshBasicMaterial color={floor === 1 ? "#28d3ff" : "#35d07f"} transparent opacity={0.2} />
+    </mesh>
   );
 }
 
@@ -103,13 +122,24 @@ function RoomBox({ room }: { room: Room }) {
 }
 
 function CoreShaft() {
+  const car = useRef<THREE.Mesh>(null);
+
+  useFrame(({ clock }) => {
+    if (!car.current) return;
+    car.current.position.y = -1.05 + (Math.sin(clock.elapsedTime * 1.4) + 1) * 1.05;
+  });
+
   return (
-    <group position={[-2.35, 2.6, -0.35]}>
+    <group position={[-2.35, 1.3, -0.35]}>
       <mesh castShadow>
-        <boxGeometry args={[0.42, 5.4, 0.42]} />
+        <boxGeometry args={[0.46, 2.9, 0.46]} />
         <meshStandardMaterial color="#28d3ff" transparent opacity={0.6} emissive="#0b7fab" emissiveIntensity={0.2} />
       </mesh>
-      <Text position={[0, 2.9, 0]} fontSize={0.18} color="#28d3ff" anchorX="center">
+      <mesh ref={car} castShadow>
+        <boxGeometry args={[0.58, 0.36, 0.58]} />
+        <meshStandardMaterial color="#e7eef8" emissive="#28d3ff" emissiveIntensity={0.45} transparent opacity={0.86} />
+      </mesh>
+      <Text position={[0, 1.75, 0]} fontSize={0.16} color="#28d3ff" anchorX="center">
         ELEVATOR / STAIR
       </Text>
     </group>
@@ -127,16 +157,18 @@ function pointAtRoute(route: Vec3[], progress: number) {
   return new THREE.Vector3(a.x + (b.x - a.x) * local, a.y + (b.y - a.y) * local + 0.42, a.z + (b.z - a.z) * local);
 }
 
-function PatientCloud({ patients }: { patients: Patient[] }) {
+function PatientCloud({ patients, running }: { patients: Patient[]; running: boolean }) {
   const mesh = useRef<THREE.InstancedMesh>(null);
   const dummy = useMemo(() => new THREE.Object3D(), []);
   const color = useMemo(() => new THREE.Color(), []);
   const shown = useMemo(() => patients.slice(0, 1000), [patients]);
+  const visualOffset = useRef(0);
 
-  useFrame(({ clock }) => {
+  useFrame((_, delta) => {
     if (!mesh.current) return;
+    if (running) visualOffset.current = (visualOffset.current + delta * 0.045) % 1;
     shown.forEach((patient, index) => {
-      const p = pointAtRoute(patient.route, (patient.progress + clock.elapsedTime * 0.03) % 1);
+      const p = pointAtRoute(patient.route, (patient.progress + visualOffset.current) % 1);
       dummy.position.copy(p);
       const scale = patient.mode === "wheelchair" ? 1.35 : patient.mode === "elderly" ? 1.15 : 1;
       dummy.scale.setScalar(scale);
@@ -168,7 +200,59 @@ function SelectedRoute({ patient, aiEnabled }: { patient: Patient | undefined; a
   return <primitive object={line} />;
 }
 
-function Scene({ rooms, patients, selectedPatient, aiEnabled }: Props) {
+function MovingRoutePulse({ patient, running, offset }: { patient: Patient | undefined; running: boolean; offset: number }) {
+  const mesh = useRef<THREE.Mesh>(null);
+  const progress = useRef(offset);
+
+  useFrame((_, delta) => {
+    if (!mesh.current || !patient) return;
+    if (running) progress.current = (progress.current + delta * 0.18) % 1;
+    const point = pointAtRoute(patient.route, (patient.progress + progress.current) % 1);
+    mesh.current.position.copy(point);
+    const scale = 0.9 + Math.sin(progress.current * Math.PI * 2) * 0.18;
+    mesh.current.scale.setScalar(scale);
+  });
+
+  if (!patient || patient.route.length < 2) return null;
+  return (
+    <mesh ref={mesh} castShadow>
+      <sphereGeometry args={[0.095, 18, 18]} />
+      <meshStandardMaterial color="#ffffff" emissive="#35d07f" emissiveIntensity={1.2} />
+    </mesh>
+  );
+}
+
+function SelectedPatientHalo({ patient, running }: { patient: Patient | undefined; running: boolean }) {
+  const group = useRef<THREE.Group>(null);
+  const progress = useRef(0);
+
+  useFrame((_, delta) => {
+    if (!group.current || !patient) return;
+    if (running) progress.current = (progress.current + delta * 0.06) % 1;
+    const point = pointAtRoute(patient.route, (patient.progress + progress.current) % 1);
+    group.current.position.copy(point);
+    const scale = 1.1 + Math.sin(progress.current * Math.PI * 2) * 0.12;
+    group.current.scale.setScalar(scale);
+  });
+
+  if (!patient) return null;
+  return (
+    <group ref={group}>
+      <mesh castShadow>
+        <sphereGeometry args={[0.14, 24, 24]} />
+        <meshStandardMaterial color="#ffffff" emissive="#28d3ff" emissiveIntensity={1.25} />
+      </mesh>
+      <mesh rotation={[-Math.PI / 2, 0, 0]}>
+        <ringGeometry args={[0.24, 0.31, 40]} />
+        <meshBasicMaterial color="#28d3ff" transparent opacity={0.55} />
+      </mesh>
+    </group>
+  );
+}
+
+function Scene({ rooms, patients, selectedPatient, aiEnabled, running }: Props) {
+  const visibleRooms = useMemo(() => rooms.filter((room) => room.floor <= 2), [rooms]);
+
   return (
     <>
       <ambientLight intensity={0.68} />
@@ -176,14 +260,17 @@ function Scene({ rooms, patients, selectedPatient, aiEnabled }: Props) {
       <pointLight position={[-3, 5, -2]} color="#28d3ff" intensity={4} />
       <Floor floor={1} />
       <Floor floor={2} />
-      <Floor floor={3} />
       <CoreShaft />
-      {rooms.map((room) => (
+      {visibleRooms.map((room) => (
         <RoomBox key={room.id} room={room} />
       ))}
       <SelectedRoute patient={selectedPatient} aiEnabled={aiEnabled} />
-      <PatientCloud patients={patients} />
-      <OrbitControls target={[0, 2.6, 0]} enableDamping dampingFactor={0.08} />
+      <MovingRoutePulse patient={selectedPatient} running={running} offset={0.08} />
+      <MovingRoutePulse patient={selectedPatient} running={running} offset={0.4} />
+      <MovingRoutePulse patient={selectedPatient} running={running} offset={0.72} />
+      <SelectedPatientHalo patient={selectedPatient} running={running} />
+      <PatientCloud patients={patients} running={running} />
+      <OrbitControls target={[0, 1.35, 0]} enableDamping dampingFactor={0.08} />
     </>
   );
 }
@@ -200,7 +287,7 @@ export function DigitalTwin(props: Props) {
         </div>
       </div>
       <div className="h-[568px]">
-        <Canvas camera={{ position: [6.5, 7.2, 8], fov: 42 }} shadows>
+        <Canvas camera={{ position: [6.4, 5.4, 7.4], fov: 44 }} shadows>
           <Suspense fallback={null}>
             <Scene {...props} />
           </Suspense>
