@@ -29,6 +29,8 @@ export type Mode = "normal" | "elderly" | "wheelchair";
 
 export type ViewMode = "patient" | "operations";
 
+export type AudienceMode = "simulation" | "staff" | "patient";
+
 export type Vec3 = {
   x: number;
   y: number;

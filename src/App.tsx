@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { BrainCircuit } from "lucide-react";
-import type { Mode, Patient, Room, ViewMode } from "./types";
+import type { AudienceMode, Mode, Patient, Room, ViewMode } from "./types";
 import { cloneRooms } from "./data/hospital";
 import { applyEmergency, computeMetrics, generatePatients, randomizeQueues, recomputePatients, resetRooms } from "./lib/simulation";
 import { DigitalTwin } from "./components/DigitalTwin";
@@ -14,6 +14,8 @@ import { OperationsPanel } from "./components/OperationsPanel";
 import { ReportPanel } from "./components/ReportPanel";
 import { CompetitionBrief } from "./components/CompetitionBrief";
 import { PatientDetailModal } from "./components/PatientDetailModal";
+import { RoleSwitch } from "./components/RoleSwitch";
+import { PatientCompanionPanel } from "./components/PatientCompanionPanel";
 
 export default function App() {
   const [rooms, setRooms] = useState<Room[]>(() => cloneRooms());
@@ -24,6 +26,7 @@ export default function App() {
   const [emergency, setEmergency] = useState(false);
   const [mode, setMode] = useState<Mode>("normal");
   const [viewMode, setViewMode] = useState<ViewMode>("patient");
+  const [audienceMode, setAudienceMode] = useState<AudienceMode>("simulation");
   const [demoActive, setDemoActive] = useState(false);
   const [demoStep, setDemoStep] = useState("");
   const [patientDetailOpen, setPatientDetailOpen] = useState(false);
@@ -94,6 +97,7 @@ export default function App() {
     setDemoActive(false);
     setDemoStep("");
     setViewMode("patient");
+    setAudienceMode("simulation");
     setPatients(generatePatients(baseRooms, "normal", 20260605));
     setSelectedPatientId(1);
   }
@@ -102,11 +106,18 @@ export default function App() {
     setMode(nextMode);
   }
 
+  function handleAudienceMode(nextMode: AudienceMode) {
+    setAudienceMode(nextMode);
+    if (nextMode === "staff") setViewMode("operations");
+    if (nextMode === "patient") setViewMode("patient");
+  }
+
   async function handleDemoMode() {
     if (demoActive) return;
     const wait = (ms: number) => new Promise((resolve) => window.setTimeout(resolve, ms));
     setDemoActive(true);
     setRunning(true);
+    setAudienceMode("simulation");
     setViewMode("operations");
 
     setDemoStep("1단계: 환자 1000명 생성");
@@ -164,6 +175,7 @@ export default function App() {
 
       <div className="mx-auto grid max-w-[1700px] gap-4 p-4">
         <CompetitionBrief demoStep={demoStep} />
+        <RoleSwitch value={audienceMode} onChange={handleAudienceMode} />
         <KpiGrid metrics={metrics} />
         <ControlDock
           running={running}
@@ -180,12 +192,14 @@ export default function App() {
           onDemo={handleDemoMode}
           onMode={handleMode}
         />
-        <ViewTabs value={viewMode} onChange={setViewMode} />
+        {audienceMode !== "patient" && <ViewTabs value={viewMode} onChange={setViewMode} />}
 
         <section className="grid gap-4 xl:grid-cols-[1.55fr_0.85fr]">
           <DigitalTwin rooms={rooms} patients={patients} selectedPatient={selectedPatient} aiEnabled={aiEnabled} />
           <div className="grid gap-4">
-            {viewMode === "patient" ? (
+            {audienceMode === "patient" ? (
+              <PatientCompanionPanel patient={selectedPatient} rooms={rooms} onOpenDetail={() => setPatientDetailOpen(true)} />
+            ) : viewMode === "patient" ? (
               <PatientRoutePanel
                 patient={selectedPatient}
                 patients={patients}
