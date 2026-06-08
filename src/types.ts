@@ -99,4 +99,5 @@ export type Metrics = {
   queueVarianceAfter: number;
   busiestRoom: Room;
   bottleneckRooms: Room[];
+  elevatorQueue: number;
 };

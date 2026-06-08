@@ -135,7 +135,12 @@ export default function App() {
     setDemoStage(2);
     setDemoStep("2단계: 채혈실 병목 발생");
     setRooms((current) =>
-      current.map((room) => (room.id === "blood_room" ? { ...room, queue: room.queue + 48 } : room))
+      current.map((room) => {
+        if (room.id === "blood_room") return { ...room, queue: room.queue + 72 };
+        if (room.id === "elevator_1f" || room.id === "elevator_2f") return { ...room, queue: room.queue + 12 };
+        if (room.id === "imaging_center") return { ...room, queue: room.queue + 16 };
+        return room;
+      })
     );
     await wait(4300);
 
@@ -148,8 +153,10 @@ export default function App() {
     setDemoStep("4단계: 환자 재배치");
     setRooms((current) =>
       current.map((room) => {
-        if (room.id === "blood_room") return { ...room, queue: Math.max(18, room.queue - 34) };
-        if (room.type === "exam" && room.queue < 20) return { ...room, queue: room.queue + 5 };
+        if (room.id === "blood_room") return { ...room, queue: Math.max(16, room.queue - 62) };
+        if (room.id === "imaging_center") return { ...room, queue: Math.max(12, room.queue - 12) };
+        if (room.id === "elevator_1f" || room.id === "elevator_2f") return { ...room, queue: Math.max(3, room.queue - 9) };
+        if (room.type === "exam" && room.queue < 22) return { ...room, queue: room.queue + 7 };
         return room;
       })
     );

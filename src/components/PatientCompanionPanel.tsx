@@ -1,4 +1,4 @@
-import { ArrowRight, Clock3, Footprints, MapPinned, ShieldCheck } from "lucide-react";
+import { ArrowRight, CheckCircle2, Clock3, Footprints, MapPinned, Navigation, ShieldCheck, Stethoscope, TimerReset } from "lucide-react";
 import type { Patient, Room } from "../types";
 import { examLabels, examToRoom } from "../data/hospital";
 import { congestionLabel, minutes } from "../lib/ui";
@@ -23,6 +23,8 @@ export function PatientCompanionPanel({ patient, rooms, onOpenDetail }: Props) {
   const saved = Math.max(0, patient.before.total - patient.after.total);
   const nextFloor = nextRoom ? `${nextRoom.floor}층` : "확인 중";
   const nextCongestion = nextRoom ? congestionLabel(nextRoom.queue) : "확인 중";
+  const elevatorQueue = rooms.filter((room) => room.type === "core").reduce((sum, room) => sum + room.queue, 0);
+  const elevatorWait = patient.mode === "wheelchair" ? 7 + elevatorQueue * 0.8 : patient.mode === "elderly" ? 4 + elevatorQueue * 0.45 : 2 + elevatorQueue * 0.25;
 
   return (
     <section className="glass overflow-hidden rounded-xl">
@@ -56,6 +58,23 @@ export function PatientCompanionPanel({ patient, rooms, onOpenDetail }: Props) {
           <PatientMetric icon={ShieldCheck} label="절감 시간" value={minutes(saved)} />
         </div>
 
+        <div className="rounded-xl border border-yellow/40 bg-yellow/10 p-4">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-xs font-bold text-yellow">층간 이동 안내</p>
+              <p className="mt-1 text-sm font-bold text-ink">엘리베이터 예상 대기 {minutes(elevatorWait)}</p>
+              <p className="mt-1 text-xs font-semibold leading-5 text-muted">
+                {patient.mode === "wheelchair"
+                  ? "휠체어 모드가 적용되어 엘리베이터 우선 경로로 안내합니다."
+                  : patient.mode === "elderly"
+                    ? "고령자 모드가 적용되어 이동 부담이 적은 순서로 안내합니다."
+                    : "층간 이동이 필요한 경우 가장 가까운 엘리베이터 코어로 안내합니다."}
+              </p>
+            </div>
+            <TimerReset className="h-8 w-8 shrink-0 text-yellow" />
+          </div>
+        </div>
+
         <div className="rounded-xl border border-line bg-panel2 p-4">
           <p className="text-xs font-bold text-muted">오늘의 AI 추천 검사 순서</p>
           <div className="mt-3 grid gap-2">
@@ -84,6 +103,12 @@ export function PatientCompanionPanel({ patient, rooms, onOpenDetail }: Props) {
         >
           왜 이 순서인지 보기
         </button>
+        <div className="grid grid-cols-2 gap-2">
+          <PatientAction icon={Navigation} label="길찾기 시작" tone="border-cyan/40 bg-cyan/10 text-cyan" />
+          <PatientAction icon={CheckCircle2} label="도착 확인" tone="border-green/40 bg-green/10 text-green" />
+          <PatientAction icon={Stethoscope} label="검사 완료" tone="border-line bg-panel2 text-muted" />
+          <PatientAction icon={ArrowRight} label="다음 검사 보기" tone="border-line bg-panel2 text-muted" />
+        </div>
       </div>
     </section>
   );
@@ -96,5 +121,14 @@ function PatientMetric({ icon: Icon, label, value }: { icon: typeof Clock3; labe
       <p className="mt-2 text-xs font-bold text-muted">{label}</p>
       <p className="mt-1 text-sm font-bold text-ink">{value}</p>
     </div>
+  );
+}
+
+function PatientAction({ icon: Icon, label, tone }: { icon: typeof Navigation; label: string; tone: string }) {
+  return (
+    <button type="button" className={`inline-flex h-10 items-center justify-center gap-2 rounded-lg border text-sm font-bold ${tone}`}>
+      <Icon className="h-4 w-4" />
+      {label}
+    </button>
   );
 }

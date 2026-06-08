@@ -98,6 +98,7 @@ export function computeMetrics(rooms: Room[], patients: Patient[], aiEnabled: bo
   const reductionRate = beforeStay > 0 ? ((beforeStay - averageStay) / beforeStay) * 100 : 0;
   const waitingReductionRate = beforeWait > 0 ? ((beforeWait - averageWaiting) / beforeWait) * 100 : 0;
   const examRooms = rooms.filter((room) => room.type === "exam");
+  const elevatorQueue = rooms.filter((room) => room.type === "core").reduce((sum, room) => sum + room.queue, 0);
   const busiestRoom = [...examRooms].sort((a, b) => b.queue - a.queue)[0];
   const bottleneckRooms = [...examRooms].sort((a, b) => b.queue - a.queue).slice(0, 3);
   const queueValues = examRooms.map((room) => room.queue);
@@ -131,7 +132,8 @@ export function computeMetrics(rooms: Room[], patients: Patient[], aiEnabled: bo
     queueVarianceBefore: variance(queueValues),
     queueVarianceAfter: variance(afterQueues),
     busiestRoom,
-    bottleneckRooms
+    bottleneckRooms,
+    elevatorQueue
   };
 }
 
