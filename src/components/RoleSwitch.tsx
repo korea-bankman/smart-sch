@@ -6,54 +6,44 @@ type Props = {
   onChange: (value: AudienceMode) => void;
 };
 
-const modes: Array<{ id: AudienceMode; label: string; description: string; icon: typeof MonitorCog }> = [
+const modes: Array<{ id: AudienceMode; label: string; icon: typeof MonitorCog }> = [
   {
     id: "simulation",
     label: "시뮬레이션",
-    description: "전체 환자 흐름과 AI 최적화 효과를 확인하는 통합 화면",
     icon: MonitorCog
   },
   {
     id: "staff",
     label: "직원용 관제",
-    description: "검사실 혼잡도, 병목, 운영 KPI 중심",
     icon: Building2
   },
   {
     id: "patient",
     label: "환자용 안내",
-    description: "내 검사 순서, 예상 시간, 다음 이동 안내 중심",
     icon: Smartphone
   }
 ];
 
 export function RoleSwitch({ value, onChange }: Props) {
   return (
-    <section className="glass rounded-xl p-3">
-      <div className="grid gap-2 lg:grid-cols-3">
-        {modes.map((mode) => {
-          const Icon = mode.icon;
-          const active = value === mode.id;
-          return (
-            <button
-              key={mode.id}
-              type="button"
-              onClick={() => onChange(mode.id)}
-              className={`flex min-h-[72px] items-center gap-3 rounded-lg border p-3 text-left transition ${
-                active ? "border-cyan bg-cyan/15 text-ink" : "border-line bg-panel2 text-muted hover:border-cyan hover:text-ink"
-              }`}
-            >
-              <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-lg ${active ? "bg-cyan/20 text-cyan" : "bg-bg text-muted"}`}>
-                <Icon className="h-5 w-5" />
-              </span>
-              <span>
-                <span className="block text-sm font-bold">{mode.label}</span>
-                <span className="mt-1 block text-xs font-semibold leading-5 text-muted">{mode.description}</span>
-              </span>
-            </button>
-          );
-        })}
-      </div>
-    </section>
+    <div className="inline-flex w-full rounded-xl border border-line bg-panel2 p-1 xl:w-auto">
+      {modes.map((mode) => {
+        const Icon = mode.icon;
+        const active = value === mode.id;
+        return (
+          <button
+            key={mode.id}
+            type="button"
+            onClick={() => onChange(mode.id)}
+            className={`inline-flex h-10 flex-1 items-center justify-center gap-2 rounded-lg px-3 text-sm font-bold transition xl:flex-none ${
+              active ? "bg-cyan/15 text-cyan shadow-[0_0_0_1px_rgba(40,211,255,0.25)]" : "text-muted hover:text-ink"
+            }`}
+          >
+            <Icon className="h-4 w-4" />
+            {mode.label}
+          </button>
+        );
+      })}
+    </div>
   );
 }

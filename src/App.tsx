@@ -12,7 +12,6 @@ import { ComparisonCharts } from "./components/ComparisonCharts";
 import { ViewTabs } from "./components/ViewTabs";
 import { OperationsPanel } from "./components/OperationsPanel";
 import { ReportPanel } from "./components/ReportPanel";
-import { CompetitionBrief } from "./components/CompetitionBrief";
 import { PatientDetailModal } from "./components/PatientDetailModal";
 import { RoleSwitch } from "./components/RoleSwitch";
 import { PatientCompanionPanel } from "./components/PatientCompanionPanel";
@@ -173,7 +172,7 @@ export default function App() {
   return (
     <main className="min-h-full bg-[radial-gradient(circle_at_top_left,_rgba(40,211,255,0.18),_transparent_32%),#070b12]">
       <header className="border-b border-line bg-bg/90 px-5 py-4 backdrop-blur">
-        <div className="mx-auto flex max-w-[1700px] flex-col gap-3 xl:flex-row xl:items-end xl:justify-between">
+        <div className="mx-auto flex max-w-[1700px] flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
           <div>
             <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-cyan">
               <BrainCircuit className="h-4 w-4" />
@@ -184,15 +183,11 @@ export default function App() {
               키오스크/WiFi/BLE/App 자동 체크인 이후, 검사실 대기열과 위치를 기반으로 총 체류시간이 가장 짧은 검사 순서를 추천합니다.
             </p>
           </div>
-          <div className="rounded-lg border border-cyan/40 bg-cyan/10 px-4 py-3 text-sm font-bold text-cyan">
-            목표 함수: Total Time = Walking + Waiting + Exam
-          </div>
+          <RoleSwitch value={audienceMode} onChange={handleAudienceMode} />
         </div>
       </header>
 
-      <div className="mx-auto grid max-w-[1700px] gap-4 p-4">
-        <CompetitionBrief demoStep={demoStep} demoStage={demoStage} demoActive={demoActive} />
-        <RoleSwitch value={audienceMode} onChange={handleAudienceMode} />
+      <div className="mx-auto grid max-w-[1700px] gap-3 p-4">
         <KpiGrid metrics={metrics} />
         <ControlDock
           running={running}
