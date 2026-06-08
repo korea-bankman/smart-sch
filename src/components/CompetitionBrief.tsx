@@ -28,13 +28,13 @@ export function CompetitionBrief({ demoStep, demoStage, demoActive }: Props) {
     },
     {
       icon: PlayCircle,
-      title: "시연 방법",
-      body: "Demo Mode를 누르면 1000명 생성, 채혈실 병목, AI 개입, 환자 재배치, KPI 개선이 자동 진행됩니다."
+      title: "운영 시나리오",
+      body: "Demo Mode를 실행하면 환자 증가, 채혈실 병목, AI 개입, 환자 재배치, KPI 개선 흐름이 자동으로 진행됩니다."
     },
     {
       icon: BadgeCheck,
-      title: "제출 포인트",
-      body: "3D 디지털 트윈, 환자 시뮬레이션, 혼잡도 Heatmap, Before/After KPI를 한 화면에서 검증합니다."
+      title: "핵심 효과",
+      body: "3D 디지털 트윈, 환자 시뮬레이션, 혼잡도 Heatmap, Before/After KPI를 통해 운영 개선 효과를 확인합니다."
     }
   ];
 
@@ -42,8 +42,8 @@ export function CompetitionBrief({ demoStep, demoStage, demoActive }: Props) {
     <section className="glass rounded-xl p-4">
       <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
         <div>
-          <p className="text-xs font-bold uppercase tracking-wide text-cyan">Competition Judge Guide</p>
-          <h2 className="mt-1 text-lg font-bold text-ink">심사위원이 바로 이해하는 발표용 데모 흐름</h2>
+          <p className="text-xs font-bold uppercase tracking-wide text-cyan">Digital Twin Control Scenario</p>
+          <h2 className="mt-1 text-lg font-bold text-ink">AI 환자 동선 최적화 운영 흐름</h2>
         </div>
         <div className="rounded-lg border border-green/40 bg-green/10 px-3 py-2 text-sm font-bold text-green">
           {demoStep || "대기 중: Demo Mode를 누르면 자동 시연이 시작됩니다"}

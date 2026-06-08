@@ -39,8 +39,33 @@ export function routeBetween(startId: RoomId, endId: RoomId, rooms: Room[], mode
 export function walkingMinutesForRoute(route: Vec3[], mode: Mode) {
   let distance = 0;
   for (let i = 0; i < route.length - 1; i += 1) distance += vectorDistance(route[i], route[i + 1]);
-  const modeWeight = mode === "elderly" ? 1.45 : mode === "wheelchair" ? 1.25 : 1;
+  const modeWeight = mode === "elderly" ? 1.75 : mode === "wheelchair" ? 1.6 : 1;
   return distance * 1.9 * modeWeight;
+}
+
+function elevatorDelayMinutes(route: Vec3[], rooms: Room[], mode: Mode) {
+  const crossesFloor = route.some((point, index) => index > 0 && Math.abs(point.y - route[index - 1].y) > 0.5);
+  if (!crossesFloor) return 0;
+
+  const elevatorQueues = rooms.filter((room) => room.type === "core").map((room) => room.queue);
+  const averageElevatorQueue = elevatorQueues.reduce((sum, queue) => sum + queue, 0) / Math.max(1, elevatorQueues.length);
+  const hospitalCrowd = rooms.filter((room) => room.type === "exam").reduce((sum, room) => sum + room.queue, 0);
+
+  if (mode === "wheelchair") return 6.5 + averageElevatorQueue * 0.75 + hospitalCrowd / 60;
+  if (mode === "elderly") return 3.2 + averageElevatorQueue * 0.38 + hospitalCrowd / 110;
+  return 1.8 + averageElevatorQueue * 0.25 + hospitalCrowd / 180;
+}
+
+function corridorCrowdPenalty(route: Vec3[], rooms: Room[], mode: Mode) {
+  if (mode === "normal") return 0;
+  const examQueueTotal = rooms.filter((room) => room.type === "exam").reduce((sum, room) => sum + room.queue, 0);
+  const routeSegments = Math.max(1, route.length - 1);
+  const modeWeight = mode === "wheelchair" ? 0.055 : 0.032;
+  return examQueueTotal * routeSegments * modeWeight;
+}
+
+export function mobilityMinutesForRoute(route: Vec3[], rooms: Room[], mode: Mode) {
+  return walkingMinutesForRoute(route, mode) + elevatorDelayMinutes(route, rooms, mode) + corridorCrowdPenalty(route, rooms, mode);
 }
 
 function roomCapacity(room: Room) {
@@ -70,7 +95,7 @@ export function estimateOrder(order: ExamId[], rooms: Room[], mode: Mode): CostR
     const roomId = examToRoom[examId];
     const room = getRoom(roomId, rooms);
     const route = routeBetween(current, roomId, rooms, mode);
-    const walk = walkingMinutesForRoute(route, mode);
+    const walk = mobilityMinutesForRoute(route, rooms, mode);
     const wait = predictedWaitingMinutes(room, elapsed + walk);
     walking += walk;
     waiting += wait;

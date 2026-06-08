@@ -168,7 +168,7 @@ export default function App() {
           <div>
             <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-cyan">
               <BrainCircuit className="h-4 w-4" />
-              Medical AI Competition Frontend MVP
+              Smart Hospital Digital Twin Prototype
             </p>
             <h1 className="mt-2 text-2xl font-bold text-ink xl:text-3xl">AI 기반 병원 디지털 트윈 환자 동선 최적화 시스템</h1>
             <p className="mt-2 text-sm font-semibold text-muted">

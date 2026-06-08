@@ -10,7 +10,7 @@ const modes: Array<{ id: AudienceMode; label: string; description: string; icon:
   {
     id: "simulation",
     label: "시뮬레이션",
-    description: "공모전 발표자가 전체 효과를 설명하는 통합 화면",
+    description: "전체 환자 흐름과 AI 최적화 효과를 확인하는 통합 화면",
     icon: MonitorCog
   },
   {
