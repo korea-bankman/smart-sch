@@ -1,8 +1,10 @@
 import { Activity, AlertTriangle, BrainCircuit, CheckCircle2, Users } from "lucide-react";
+import type { Metrics } from "../types";
 
 type Props = {
   active: boolean;
   stage: number;
+  metrics: Metrics;
 };
 
 const events = [
@@ -38,14 +40,15 @@ const events = [
   }
 ];
 
-export function DemoEventOverlay({ active, stage }: Props) {
+export function DemoEventOverlay({ active, stage, metrics }: Props) {
   if (!active || stage < 1) return null;
   const event = events[Math.min(stage - 1, events.length - 1)];
   const Icon = event.icon;
+  const isResult = stage >= 5;
 
   return (
     <div className="pointer-events-none absolute inset-x-4 top-16 z-30 flex justify-center">
-      <div className={`demo-event-overlay w-full max-w-xl rounded-2xl border px-5 py-4 shadow-2xl backdrop-blur-xl ${event.tone}`}>
+      <div className={`demo-event-overlay w-full ${isResult ? "max-w-2xl" : "max-w-xl"} rounded-2xl border px-5 py-4 shadow-2xl backdrop-blur-xl ${event.tone}`}>
         <div className="flex items-center gap-4">
           <div className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-bg/70">
             <Icon className="h-7 w-7" />
@@ -56,7 +59,23 @@ export function DemoEventOverlay({ active, stage }: Props) {
             <p className="mt-1 text-sm font-semibold leading-6 text-muted">{event.body}</p>
           </div>
         </div>
+        {isResult && (
+          <div className="mt-4 grid grid-cols-3 gap-2">
+            <ResultMetric label="체류시간 감소" value={`${metrics.reductionRate.toFixed(1)}%`} />
+            <ResultMetric label="대기시간 감소" value={`${metrics.waitingReductionRate.toFixed(1)}%`} />
+            <ResultMetric label="민원 감소 예측" value={`${metrics.complaintReduction.toFixed(1)}%`} />
+          </div>
+        )}
       </div>
+    </div>
+  );
+}
+
+function ResultMetric({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-xl border border-green/30 bg-bg/65 p-3 text-center">
+      <p className="text-xs font-bold text-muted">{label}</p>
+      <p className="mt-1 text-2xl font-bold text-green">{value}</p>
     </div>
   );
 }

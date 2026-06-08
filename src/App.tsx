@@ -208,7 +208,7 @@ export default function App() {
 
         <section className="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,1.55fr)_minmax(360px,0.85fr)]">
           <div className="relative min-w-0">
-            <DemoEventOverlay active={demoActive} stage={demoStage} />
+            <DemoEventOverlay active={demoActive} stage={demoStage} metrics={metrics} />
             <DigitalTwin rooms={rooms} patients={patients} selectedPatient={selectedPatient} aiEnabled={aiEnabled} running={running} />
           </div>
           <div className="min-w-0 xl:h-[620px]">
