@@ -30,3 +30,18 @@ canvas {
   border: 1px solid rgba(71, 96, 130, 0.62);
   box-shadow: 0 18px 60px rgba(0, 0, 0, 0.28);
 }
+
+.demo-progress {
+  animation: demo-progress 4s linear infinite;
+  transform-origin: left;
+}
+
+@keyframes demo-progress {
+  from {
+    transform: scaleX(0);
+  }
+
+  to {
+    transform: scaleX(1);
+  }
+}

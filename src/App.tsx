@@ -29,6 +29,7 @@ export default function App() {
   const [audienceMode, setAudienceMode] = useState<AudienceMode>("simulation");
   const [demoActive, setDemoActive] = useState(false);
   const [demoStep, setDemoStep] = useState("");
+  const [demoStage, setDemoStage] = useState(0);
   const [patientDetailOpen, setPatientDetailOpen] = useState(false);
   const frameRef = useRef<number | null>(null);
   const lastFrameRef = useRef<number>(0);
@@ -96,6 +97,7 @@ export default function App() {
     setRunning(false);
     setDemoActive(false);
     setDemoStep("");
+    setDemoStage(0);
     setViewMode("patient");
     setAudienceMode("simulation");
     setPatients(generatePatients(baseRooms, "normal", 20260605));
@@ -116,6 +118,7 @@ export default function App() {
     if (demoActive) return;
     const wait = (ms: number) => new Promise((resolve) => window.setTimeout(resolve, ms));
     setDemoActive(true);
+    setDemoStage(1);
     setRunning(true);
     setAudienceMode("simulation");
     setViewMode("operations");
@@ -125,18 +128,21 @@ export default function App() {
     setRooms(baseRooms);
     setPatients(generatePatients(baseRooms, "normal", 20260605));
     setAiEnabled(false);
-    await wait(1200);
+    await wait(3800);
 
+    setDemoStage(2);
     setDemoStep("2단계: 채혈실 병목 발생");
     setRooms((current) =>
       current.map((room) => (room.id === "blood_room" ? { ...room, queue: room.queue + 48 } : room))
     );
-    await wait(1400);
+    await wait(4300);
 
+    setDemoStage(3);
     setDemoStep("3단계: AI 자동 개입");
     setAiEnabled(true);
-    await wait(1400);
+    await wait(4300);
 
+    setDemoStage(4);
     setDemoStep("4단계: 환자 재배치");
     setRooms((current) =>
       current.map((room) => {
@@ -145,12 +151,14 @@ export default function App() {
         return room;
       })
     );
-    await wait(1400);
+    await wait(4300);
 
+    setDemoStage(5);
     setDemoStep("5단계: KPI 개선 결과");
     setViewMode("patient");
-    await wait(1800);
+    await wait(5200);
     setDemoActive(false);
+    setDemoStep("데모 완료: AI 개입 후 체류시간, 대기시간, 병목 집중도가 개선되었습니다");
   }
 
   return (
@@ -174,7 +182,7 @@ export default function App() {
       </header>
 
       <div className="mx-auto grid max-w-[1700px] gap-4 p-4">
-        <CompetitionBrief demoStep={demoStep} />
+        <CompetitionBrief demoStep={demoStep} demoStage={demoStage} demoActive={demoActive} />
         <RoleSwitch value={audienceMode} onChange={handleAudienceMode} />
         <KpiGrid metrics={metrics} />
         <ControlDock
