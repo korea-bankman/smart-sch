@@ -16,6 +16,7 @@ import { CompetitionBrief } from "./components/CompetitionBrief";
 import { PatientDetailModal } from "./components/PatientDetailModal";
 import { RoleSwitch } from "./components/RoleSwitch";
 import { PatientCompanionPanel } from "./components/PatientCompanionPanel";
+import { DemoEventOverlay } from "./components/DemoEventOverlay";
 
 export default function App() {
   const [rooms, setRooms] = useState<Room[]>(() => cloneRooms());
@@ -204,7 +205,10 @@ export default function App() {
         {audienceMode !== "patient" && <ViewTabs value={viewMode} onChange={setViewMode} />}
 
         <section className="grid gap-4 xl:grid-cols-[1.55fr_0.85fr]">
-          <DigitalTwin rooms={rooms} patients={patients} selectedPatient={selectedPatient} aiEnabled={aiEnabled} running={running} />
+          <div className="relative">
+            <DemoEventOverlay active={demoActive} stage={demoStage} />
+            <DigitalTwin rooms={rooms} patients={patients} selectedPatient={selectedPatient} aiEnabled={aiEnabled} running={running} />
+          </div>
           <div className="grid gap-4">
             {audienceMode === "patient" ? (
               <PatientCompanionPanel patient={selectedPatient} rooms={rooms} onOpenDetail={() => setPatientDetailOpen(true)} />

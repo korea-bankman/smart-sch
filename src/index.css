@@ -36,6 +36,10 @@ canvas {
   transform-origin: left;
 }
 
+.demo-event-overlay {
+  animation: demo-event-overlay 0.38s ease-out;
+}
+
 @keyframes demo-progress {
   from {
     transform: scaleX(0);
@@ -43,5 +47,17 @@ canvas {
 
   to {
     transform: scaleX(1);
+  }
+}
+
+@keyframes demo-event-overlay {
+  from {
+    opacity: 0;
+    transform: translateY(-14px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
   }
 }
