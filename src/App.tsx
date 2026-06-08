@@ -12,6 +12,7 @@ import { ComparisonCharts } from "./components/ComparisonCharts";
 import { ViewTabs } from "./components/ViewTabs";
 import { OperationsPanel } from "./components/OperationsPanel";
 import { ReportPanel } from "./components/ReportPanel";
+import { CompetitionBrief } from "./components/CompetitionBrief";
 
 export default function App() {
   const [rooms, setRooms] = useState<Room[]>(() => cloneRooms());
@@ -160,6 +161,7 @@ export default function App() {
       </header>
 
       <div className="mx-auto grid max-w-[1700px] gap-4 p-4">
+        <CompetitionBrief demoStep={demoStep} />
         <KpiGrid metrics={metrics} />
         <ControlDock
           running={running}
