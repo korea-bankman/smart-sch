@@ -30,11 +30,20 @@ export function PatientRoutePanel({ patient, patients, selectedPatientId, onSele
 
       {patient && (
         <div className="mt-4 grid gap-3">
-          <div className="rounded-lg border border-line bg-panel2 p-3">
-            <p className="text-xs font-bold text-muted">환자 정보</p>
-            <p className="mt-1 text-lg font-bold text-ink">
-              #{patient.id} {patient.name} · {patient.age}세 · {patient.mode}
-            </p>
+          <div className="rounded-xl border border-cyan/30 bg-cyan/10 p-3">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-xs font-bold text-cyan">선택 환자</p>
+                <p className="mt-1 truncate text-xl font-bold text-ink">
+                  #{patient.id} {patient.name}
+                </p>
+                <p className="mt-1 text-xs font-bold text-muted">{patient.age}세 · {patient.mode}</p>
+              </div>
+              <div className="rounded-lg border border-green/40 bg-green/10 px-3 py-2 text-right">
+                <p className="text-xs font-bold text-muted">총 절감</p>
+                <p className="text-lg font-bold text-green">{minutes(Math.max(0, patient.before.total - patient.after.total))}</p>
+              </div>
+            </div>
             <button
               type="button"
               onClick={onOpenDetail}
@@ -45,10 +54,9 @@ export function PatientRoutePanel({ patient, patients, selectedPatientId, onSele
           </div>
           <RouteBox title="기존 고정 순서" order={patient.fixedOrder.map((exam) => examLabels[exam])} total={patient.before.total} tone="text-red" />
           <RouteBox title="AI 추천 순서" order={patient.aiOrder.map((exam) => examLabels[exam])} total={patient.after.total} tone="text-green" />
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-2 gap-2">
             <MiniMetric label="대기 감소" value={minutes(Math.max(0, patient.before.waiting - patient.after.waiting))} />
             <MiniMetric label="이동 감소" value={minutes(Math.max(0, patient.before.walking - patient.after.walking))} />
-            <MiniMetric label="총 절감" value={minutes(Math.max(0, patient.before.total - patient.after.total))} />
           </div>
         </div>
       )}
@@ -63,7 +71,7 @@ function RouteBox({ title, order, total, tone }: { title: string; order: string[
         <p className="text-xs font-bold text-muted">{title}</p>
         <p className={`text-sm font-bold ${tone}`}>{minutes(total)}</p>
       </div>
-      <p className="mt-2 text-sm font-bold leading-6 text-ink">{order.join(" → ")}</p>
+      <p className="mt-2 text-sm font-bold leading-6 text-ink">{order.join(" -> ")}</p>
     </div>
   );
 }
