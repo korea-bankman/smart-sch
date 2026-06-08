@@ -6,6 +6,7 @@ html,
 body,
 #root {
   height: 100%;
+  overflow-x: hidden;
 }
 
 body {
@@ -13,6 +14,7 @@ body {
   background: #070b12;
   color: #e7eef8;
   font-family: Arial, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+  overflow-x: hidden;
 }
 
 button,
@@ -23,6 +25,29 @@ select {
 
 canvas {
   outline: none;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.dashboard-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(40, 211, 255, 0.45) rgba(13, 20, 33, 0.4);
+}
+
+.dashboard-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+
+.dashboard-scroll::-webkit-scrollbar-track {
+  background: rgba(13, 20, 33, 0.4);
+  border-radius: 999px;
+}
+
+.dashboard-scroll::-webkit-scrollbar-thumb {
+  background: rgba(40, 211, 255, 0.38);
+  border-radius: 999px;
 }
 
 .glass {

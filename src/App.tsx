@@ -170,7 +170,7 @@ export default function App() {
   }
 
   return (
-    <main className="min-h-full bg-[radial-gradient(circle_at_top_left,_rgba(40,211,255,0.18),_transparent_32%),#070b12]">
+    <main className="min-h-full overflow-x-hidden bg-[radial-gradient(circle_at_top_left,_rgba(40,211,255,0.18),_transparent_32%),#070b12]">
       <header className="border-b border-line bg-bg/90 px-5 py-4 backdrop-blur">
         <div className="mx-auto flex max-w-[1700px] flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
           <div>
@@ -187,7 +187,7 @@ export default function App() {
         </div>
       </header>
 
-      <div className="mx-auto grid max-w-[1700px] gap-3 p-4">
+      <div className="mx-auto grid w-full max-w-[1700px] gap-3 overflow-x-hidden p-4">
         <KpiGrid metrics={metrics} />
         <ControlDock
           running={running}
@@ -206,26 +206,28 @@ export default function App() {
         />
         {audienceMode !== "patient" && <ViewTabs value={viewMode} onChange={setViewMode} />}
 
-        <section className="grid gap-4 xl:grid-cols-[1.55fr_0.85fr]">
-          <div className="relative">
+        <section className="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,1.55fr)_minmax(360px,0.85fr)]">
+          <div className="relative min-w-0">
             <DemoEventOverlay active={demoActive} stage={demoStage} />
             <DigitalTwin rooms={rooms} patients={patients} selectedPatient={selectedPatient} aiEnabled={aiEnabled} running={running} />
           </div>
-          <div className="grid gap-4">
-            {audienceMode === "patient" ? (
-              <PatientCompanionPanel patient={selectedPatient} rooms={rooms} onOpenDetail={() => setPatientDetailOpen(true)} />
-            ) : viewMode === "patient" ? (
-              <PatientRoutePanel
-                patient={selectedPatient}
-                patients={patients}
-                selectedPatientId={selectedPatientId}
-                onSelect={setSelectedPatientId}
-                onOpenDetail={() => setPatientDetailOpen(true)}
-              />
-            ) : (
-              <OperationsPanel metrics={metrics} />
-            )}
-            <QueuePanel rooms={rooms} />
+          <div className="min-w-0 xl:h-[620px]">
+            <div className="dashboard-scroll grid gap-3 xl:h-full xl:overflow-y-auto xl:pr-1">
+              {audienceMode === "patient" ? (
+                <PatientCompanionPanel patient={selectedPatient} rooms={rooms} onOpenDetail={() => setPatientDetailOpen(true)} />
+              ) : viewMode === "patient" ? (
+                <PatientRoutePanel
+                  patient={selectedPatient}
+                  patients={patients}
+                  selectedPatientId={selectedPatientId}
+                  onSelect={setSelectedPatientId}
+                  onOpenDetail={() => setPatientDetailOpen(true)}
+                />
+              ) : (
+                <OperationsPanel metrics={metrics} />
+              )}
+              <QueuePanel rooms={rooms} />
+            </div>
           </div>
         </section>
 
