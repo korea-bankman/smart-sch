@@ -7,9 +7,10 @@ type Props = {
   patients: Patient[];
   selectedPatientId: number;
   onSelect: (id: number) => void;
+  onOpenDetail: () => void;
 };
 
-export function PatientRoutePanel({ patient, patients, selectedPatientId, onSelect }: Props) {
+export function PatientRoutePanel({ patient, patients, selectedPatientId, onSelect, onOpenDetail }: Props) {
   return (
     <section className="glass rounded-xl p-4">
       <div className="flex items-center justify-between">
@@ -34,6 +35,13 @@ export function PatientRoutePanel({ patient, patients, selectedPatientId, onSele
             <p className="mt-1 text-lg font-bold text-ink">
               #{patient.id} {patient.name} · {patient.age}세 · {patient.mode}
             </p>
+            <button
+              type="button"
+              onClick={onOpenDetail}
+              className="mt-3 h-9 w-full rounded-lg border border-cyan/40 bg-cyan/10 text-sm font-bold text-cyan hover:bg-cyan/20"
+            >
+              상세 근거 보기
+            </button>
           </div>
           <RouteBox title="기존 고정 순서" order={patient.fixedOrder.map((exam) => examLabels[exam])} total={patient.before.total} tone="text-red" />
           <RouteBox title="AI 추천 순서" order={patient.aiOrder.map((exam) => examLabels[exam])} total={patient.after.total} tone="text-green" />

@@ -13,6 +13,7 @@ import { ViewTabs } from "./components/ViewTabs";
 import { OperationsPanel } from "./components/OperationsPanel";
 import { ReportPanel } from "./components/ReportPanel";
 import { CompetitionBrief } from "./components/CompetitionBrief";
+import { PatientDetailModal } from "./components/PatientDetailModal";
 
 export default function App() {
   const [rooms, setRooms] = useState<Room[]>(() => cloneRooms());
@@ -25,6 +26,7 @@ export default function App() {
   const [viewMode, setViewMode] = useState<ViewMode>("patient");
   const [demoActive, setDemoActive] = useState(false);
   const [demoStep, setDemoStep] = useState("");
+  const [patientDetailOpen, setPatientDetailOpen] = useState(false);
   const frameRef = useRef<number | null>(null);
   const lastFrameRef = useRef<number>(0);
   const progressAccumulatorRef = useRef<number>(0);
@@ -184,7 +186,13 @@ export default function App() {
           <DigitalTwin rooms={rooms} patients={patients} selectedPatient={selectedPatient} aiEnabled={aiEnabled} />
           <div className="grid gap-4">
             {viewMode === "patient" ? (
-              <PatientRoutePanel patient={selectedPatient} patients={patients} selectedPatientId={selectedPatientId} onSelect={setSelectedPatientId} />
+              <PatientRoutePanel
+                patient={selectedPatient}
+                patients={patients}
+                selectedPatientId={selectedPatientId}
+                onSelect={setSelectedPatientId}
+                onOpenDetail={() => setPatientDetailOpen(true)}
+              />
             ) : (
               <OperationsPanel metrics={metrics} />
             )}
@@ -195,6 +203,7 @@ export default function App() {
         <ReportPanel metrics={metrics} demoStep={demoStep} />
         <ComparisonCharts metrics={metrics} />
       </div>
+      <PatientDetailModal patient={selectedPatient} open={patientDetailOpen} onClose={() => setPatientDetailOpen(false)} />
     </main>
   );
 }
