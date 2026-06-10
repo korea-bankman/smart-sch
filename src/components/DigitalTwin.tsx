@@ -11,6 +11,7 @@ type Props = {
   selectedPatient: Patient | undefined;
   aiEnabled: boolean;
   running: boolean;
+  variant?: "full" | "compact";
 };
 
 const floorOutline: Array<[number, number]> = [
@@ -276,18 +277,19 @@ function Scene({ rooms, patients, selectedPatient, aiEnabled, running }: Props) 
 }
 
 export function DigitalTwin(props: Props) {
+  const compact = props.variant === "compact";
   return (
-    <section className="glass h-[620px] overflow-hidden rounded-xl">
+    <section className={`glass overflow-hidden rounded-xl ${compact ? "h-[360px]" : "h-[620px]"}`}>
       <div className="flex h-12 items-center justify-between border-b border-line px-4">
-        <h2 className="text-sm font-bold text-ink">3D 병원 디지털 트윈</h2>
-        <div className="flex items-center gap-3 text-xs font-bold text-muted">
+        <h2 className="text-sm font-bold text-ink">{compact ? "위치 지도" : "3D 병원 디지털 트윈"}</h2>
+        <div className="flex items-center gap-2 text-xs font-bold text-muted">
           <span className="inline-flex items-center gap-1"><i className="h-2.5 w-2.5 rounded-full bg-green" /> 여유</span>
           <span className="inline-flex items-center gap-1"><i className="h-2.5 w-2.5 rounded-full bg-yellow" /> 보통</span>
           <span className="inline-flex items-center gap-1"><i className="h-2.5 w-2.5 rounded-full bg-red" /> 혼잡</span>
         </div>
       </div>
-      <div className="h-[568px]">
-        <Canvas camera={{ position: [6.4, 5.4, 7.4], fov: 44 }} shadows>
+      <div className={compact ? "h-[308px]" : "h-[568px]"}>
+        <Canvas camera={{ position: compact ? [5.2, 4.2, 6.2] : [6.4, 5.4, 7.4], fov: compact ? 48 : 44 }} shadows>
           <Suspense fallback={null}>
             <Scene {...props} />
           </Suspense>

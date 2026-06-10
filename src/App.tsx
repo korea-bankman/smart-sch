@@ -14,8 +14,9 @@ import { OperationsPanel } from "./components/OperationsPanel";
 import { ReportPanel } from "./components/ReportPanel";
 import { PatientDetailModal } from "./components/PatientDetailModal";
 import { RoleSwitch } from "./components/RoleSwitch";
-import { PatientCompanionPanel } from "./components/PatientCompanionPanel";
 import { DemoEventOverlay } from "./components/DemoEventOverlay";
+import { StaffModeScreen } from "./components/StaffModeScreen";
+import { PatientModeScreen } from "./components/PatientModeScreen";
 
 export default function App() {
   const [rooms, setRooms] = useState<Room[]>(() => cloneRooms());
@@ -188,51 +189,80 @@ export default function App() {
       </header>
 
       <div className="mx-auto grid w-full max-w-[1700px] gap-3 overflow-x-hidden p-4">
-        <KpiGrid metrics={metrics} />
-        <ControlDock
-          running={running}
-          aiEnabled={aiEnabled}
-          emergency={emergency}
-          demoActive={demoActive}
-          mode={mode}
-          onGenerate={handleGenerate}
-          onStart={() => setRunning((value) => !value)}
-          onAi={handleAi}
-          onEmergency={handleEmergency}
-          onRandomQueue={handleRandomQueue}
-          onReset={handleReset}
-          onDemo={handleDemoMode}
-          onMode={handleMode}
-        />
-        {audienceMode !== "patient" && <ViewTabs value={viewMode} onChange={setViewMode} />}
+        {audienceMode === "simulation" && (
+          <>
+            <KpiGrid metrics={metrics} />
+            <ControlDock
+              running={running}
+              aiEnabled={aiEnabled}
+              emergency={emergency}
+              demoActive={demoActive}
+              mode={mode}
+              onGenerate={handleGenerate}
+              onStart={() => setRunning((value) => !value)}
+              onAi={handleAi}
+              onEmergency={handleEmergency}
+              onRandomQueue={handleRandomQueue}
+              onReset={handleReset}
+              onDemo={handleDemoMode}
+              onMode={handleMode}
+            />
+            <ViewTabs value={viewMode} onChange={setViewMode} />
 
-        <section className="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,1.55fr)_minmax(360px,0.85fr)]">
-          <div className="relative min-w-0">
-            <DemoEventOverlay active={demoActive} stage={demoStage} metrics={metrics} />
-            <DigitalTwin rooms={rooms} patients={patients} selectedPatient={selectedPatient} aiEnabled={aiEnabled} running={running} />
-          </div>
-          <div className="min-w-0 xl:h-[620px]">
-            <div className="dashboard-scroll grid gap-3 xl:h-full xl:overflow-y-auto xl:pr-1">
-              {audienceMode === "patient" ? (
-                <PatientCompanionPanel patient={selectedPatient} rooms={rooms} onOpenDetail={() => setPatientDetailOpen(true)} />
-              ) : viewMode === "patient" ? (
-                <PatientRoutePanel
-                  patient={selectedPatient}
-                  patients={patients}
-                  selectedPatientId={selectedPatientId}
-                  onSelect={setSelectedPatientId}
-                  onOpenDetail={() => setPatientDetailOpen(true)}
-                />
-              ) : (
-                <OperationsPanel metrics={metrics} />
-              )}
-              <QueuePanel rooms={rooms} />
-            </div>
-          </div>
-        </section>
+            <section className="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,1.55fr)_minmax(360px,0.85fr)]">
+              <div className="relative min-w-0">
+                <DemoEventOverlay active={demoActive} stage={demoStage} metrics={metrics} />
+                <DigitalTwin rooms={rooms} patients={patients} selectedPatient={selectedPatient} aiEnabled={aiEnabled} running={running} />
+              </div>
+              <div className="min-w-0 xl:h-[620px]">
+                <div className="dashboard-scroll grid gap-3 xl:h-full xl:overflow-y-auto xl:pr-1">
+                  {viewMode === "patient" ? (
+                    <PatientRoutePanel
+                      patient={selectedPatient}
+                      patients={patients}
+                      selectedPatientId={selectedPatientId}
+                      onSelect={setSelectedPatientId}
+                      onOpenDetail={() => setPatientDetailOpen(true)}
+                    />
+                  ) : (
+                    <OperationsPanel metrics={metrics} />
+                  )}
+                  <QueuePanel rooms={rooms} />
+                </div>
+              </div>
+            </section>
 
-        <ReportPanel metrics={metrics} demoStep={demoStep} />
-        <ComparisonCharts metrics={metrics} />
+            <ReportPanel metrics={metrics} demoStep={demoStep} />
+            <ComparisonCharts metrics={metrics} />
+          </>
+        )}
+
+        {audienceMode === "staff" && (
+          <StaffModeScreen
+            rooms={rooms}
+            patients={patients}
+            selectedPatient={selectedPatient}
+            metrics={metrics}
+            aiEnabled={aiEnabled}
+            running={running}
+            onAi={handleAi}
+            onEmergency={handleEmergency}
+            onRandomQueue={handleRandomQueue}
+            onReset={handleReset}
+            onOpenDetail={() => setPatientDetailOpen(true)}
+          />
+        )}
+
+        {audienceMode === "patient" && (
+          <PatientModeScreen
+            patient={selectedPatient}
+            rooms={rooms}
+            patients={patients}
+            aiEnabled={aiEnabled}
+            running={running}
+            onOpenDetail={() => setPatientDetailOpen(true)}
+          />
+        )}
       </div>
       <PatientDetailModal patient={selectedPatient} open={patientDetailOpen} onClose={() => setPatientDetailOpen(false)} />
     </main>
