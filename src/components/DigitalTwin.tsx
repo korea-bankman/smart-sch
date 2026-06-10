@@ -217,28 +217,6 @@ function SelectedRoute({ patient, aiEnabled }: { patient: Patient | undefined; a
   return <primitive object={line} />;
 }
 
-function MovingRoutePulse({ patient, running, offset }: { patient: Patient | undefined; running: boolean; offset: number }) {
-  const mesh = useRef<THREE.Mesh>(null);
-  const progress = useRef(offset);
-
-  useFrame((_, delta) => {
-    if (!mesh.current || !patient) return;
-    if (running) progress.current = (progress.current + delta * 0.18) % 1;
-    const point = pointAtRoute(patient.route, (patient.progress + progress.current) % 1);
-    mesh.current.position.copy(point);
-    const scale = 0.9 + Math.sin(progress.current * Math.PI * 2) * 0.18;
-    mesh.current.scale.setScalar(scale);
-  });
-
-  if (!patient || patient.route.length < 2) return null;
-  return (
-    <mesh ref={mesh} castShadow>
-      <sphereGeometry args={[0.095, 18, 18]} />
-      <meshStandardMaterial color="#ffffff" emissive="#35d07f" emissiveIntensity={1.2} />
-    </mesh>
-  );
-}
-
 function SelectedPatientHalo({ patient, running }: { patient: Patient | undefined; running: boolean }) {
   const group = useRef<THREE.Group>(null);
   const progress = useRef(0);
@@ -289,9 +267,6 @@ function Scene({ rooms, patients, selectedPatient, aiEnabled, running }: Props) 
         <RoomBox key={room.id} room={room} />
       ))}
       <SelectedRoute patient={selectedPatient} aiEnabled={aiEnabled} />
-      <MovingRoutePulse patient={selectedPatient} running={running} offset={0.08} />
-      <MovingRoutePulse patient={selectedPatient} running={running} offset={0.4} />
-      <MovingRoutePulse patient={selectedPatient} running={running} offset={0.72} />
       <SelectedPatientHalo patient={selectedPatient} running={running} />
       <PatientCloud patients={patients} running={running} />
       <OrbitControls target={[0, 1.35, 0]} enableDamping dampingFactor={0.08} />

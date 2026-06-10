@@ -217,34 +217,56 @@ function ElevatorCore({ progress }: { progress: number }) {
   );
 }
 
+const patientLanes = [
+  { floor: 1, from: [-3.15, 1.05], to: [1.2, 2.35] },
+  { floor: 1, from: [-2.9, -1.65], to: [0.8, -1.35] },
+  { floor: 1, from: [-2.35, -0.3], to: [1.65, 0.9] },
+  { floor: 2, from: [-2.35, -0.35], to: [-2.55, -1.05] },
+  { floor: 2, from: [-2.15, -1.18], to: [-0.9, -2.25] },
+  { floor: 2, from: [-1.45, -1.45], to: [0.85, -3.05] },
+  { floor: 2, from: [-0.3, -0.55], to: [1.25, 2.25] },
+  { floor: 2, from: [0.65, -2.65], to: [1.15, 1.15] }
+] as const;
+
 function PatientSwarm({ sceneIndex, progress }: { sceneIndex: number; progress: number }) {
   const bodyMesh = useRef<THREE.InstancedMesh>(null);
   const headMesh = useRef<THREE.InstancedMesh>(null);
   const dummy = useMemo(() => new THREE.Object3D(), []);
   const color = useMemo(() => new THREE.Color(), []);
-  const count = 110;
+  const count = 88;
 
   useFrame(({ clock }) => {
     if (!bodyMesh.current || !headMesh.current) return;
     for (let index = 0; index < count; index += 1) {
-      const lane = index % 7;
-      const floor = index % 5 === 0 ? 1 : 2;
-      const baseY = floor === 1 ? 0.42 : FLOOR_HEIGHT + 0.42;
-      const baseX = -3.05 + lane * 0.88;
-      const speed = sceneIndex < 5 ? 0.65 : 1.05;
-      const z = -3.45 + ((clock.elapsedTime * speed + index * 0.31) % 6.95);
-      const spread = Math.sin(index * 1.7) * 0.08;
-      const scale = sceneIndex === 0 ? lerp(0.72, 1.08, progress) : 0.88;
+      const lane = patientLanes[index % patientLanes.length];
+      const laneProgress = (clock.elapsedTime * (sceneIndex < 5 ? 0.055 : 0.085) + index * 0.137) % 1;
+      const wave = index % 2 === 0 ? laneProgress : 1 - laneProgress;
+      const fromX = lane.from[0];
+      const fromZ = lane.from[1];
+      const toX = lane.to[0];
+      const toZ = lane.to[1];
+      const dx = toX - fromX;
+      const dz = toZ - fromZ;
+      const length = Math.max(0.001, Math.hypot(dx, dz));
+      const normalX = -dz / length;
+      const normalZ = dx / length;
+      const offset = ((index % 5) - 2) * 0.055 + Math.sin(index * 2.1) * 0.025;
+      const x = lerp(fromX, toX, wave) + normalX * offset;
+      const z = lerp(fromZ, toZ, wave) + normalZ * offset;
+      const baseY = lane.floor === 1 ? 0.26 : FLOOR_HEIGHT + 0.26;
+      const scale = sceneIndex === 0 ? lerp(0.68, 0.92, progress) : 0.8;
       color.set(sceneIndex < 3 ? "#f6c851" : sceneIndex >= 5 ? "#35d07f" : "#28d3ff");
 
-      dummy.position.set(baseX + spread, baseY - 0.1, z);
+      dummy.position.set(x, baseY - 0.04, z);
       dummy.scale.setScalar(scale);
+      dummy.rotation.y = Math.atan2(dx, dz);
       dummy.updateMatrix();
       bodyMesh.current.setMatrixAt(index, dummy.matrix);
       bodyMesh.current.setColorAt(index, color);
 
-      dummy.position.set(baseX + spread, baseY + 0.13 * scale, z);
+      dummy.position.set(x, baseY + 0.14 * scale, z);
       dummy.scale.setScalar(scale);
+      dummy.rotation.y = 0;
       dummy.updateMatrix();
       headMesh.current.setMatrixAt(index, dummy.matrix);
       headMesh.current.setColorAt(index, color);
