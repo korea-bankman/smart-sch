@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { AlertTriangle, Bot, CheckCircle2, Clock3, RotateCcw, Send, Shuffle, Siren, UserCheck } from "lucide-react";
+import { AlertTriangle, Bot, CheckCircle2, Clock3, RotateCcw, Search, Send, Shuffle, Siren, UserCheck } from "lucide-react";
 import type { Metrics, Patient, Room } from "../types";
 import { DigitalTwin } from "./DigitalTwin";
 import { OperationsPanel } from "./OperationsPanel";
@@ -19,13 +19,25 @@ type Props = {
   onRandomQueue: () => void;
   onReset: () => void;
   onOpenDetail: () => void;
+  onSelectPatient: (id: number) => void;
 };
 
 export function StaffModeScreen(props: Props) {
   const [notice, setNotice] = useState("직원 조치 결과가 여기에 표시됩니다.");
+  const [query, setQuery] = useState("");
   const patient = props.selectedPatient;
-  const longWaitPatients = props.patients.filter((item) => item.after.waiting >= 120).length;
-  const aiMovedPatients = props.patients.filter((item) => item.fixedOrder.join(",") !== item.aiOrder.join(",")).length;
+  const waitOver60 = props.patients.filter((item) => item.after.waiting >= 60).length;
+  const waitOver120 = props.patients.filter((item) => item.after.waiting >= 120).length;
+  const aiSuggestedPatients = props.patients.filter((item) => item.before.total - item.after.total >= 10).length;
+  const congestionRank = props.rooms.filter((room) => room.type === "exam").sort((a, b) => b.queue - a.queue);
+  const searchResults = props.patients
+    .filter((item) => {
+      const normalized = query.trim().toLowerCase();
+      if (!normalized) return false;
+      const patientCode = `p-${String(item.id).padStart(3, "0")}`;
+      return item.name.toLowerCase().includes(normalized) || patientCode.includes(normalized) || String(item.id).includes(normalized);
+    })
+    .slice(0, 5);
 
   function runAction(message: string, action?: () => void) {
     action?.();
@@ -36,10 +48,10 @@ export function StaffModeScreen(props: Props) {
     <div className="grid gap-3">
       <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
         <StaffStat label="전체 환자" value={`${props.metrics.currentPatients.toLocaleString()}명`} sub="시뮬레이션 대상" icon={UserCheck} />
-        <StaffStat label="병목 알림" value={`${props.metrics.bottleneckRooms.length}건`} sub="혼잡 검사실 기준" icon={Siren} tone="text-red" />
-        <StaffStat label="최혼잡" value={props.metrics.busiestRoom.name} sub={`${props.metrics.busiestRoom.queue}명 대기`} icon={AlertTriangle} tone="text-yellow" />
-        <StaffStat label="재배치 후보" value={`${aiMovedPatients}명`} sub="AI 순서 변경 대상" icon={Bot} tone="text-cyan" />
-        <StaffStat label="장기대기 예상" value={`${longWaitPatients}명`} sub="120분 이상 추정" icon={Clock3} tone="text-red" />
+        <StaffStat label="혼잡순위 1위" value={congestionRank[0]?.name ?? "-"} sub={`${congestionRank[0]?.queue ?? 0}명 대기`} icon={AlertTriangle} tone="text-yellow" />
+        <StaffStat label="AI 권고" value={`${aiSuggestedPatients}명`} sub="10분 이상 절감 예상" icon={Bot} tone="text-cyan" />
+        <StaffStat label="60분 이상 대기" value={`${waitOver60}명`} sub="장기대기 주의" icon={Clock3} tone="text-yellow" />
+        <StaffStat label="120분 이상 대기" value={`${waitOver120}명`} sub="장기대기 위험" icon={Clock3} tone="text-red" />
       </section>
 
       <section className="grid min-w-0 gap-3 xl:grid-cols-[0.85fr_1.1fr_0.85fr]">
@@ -56,6 +68,42 @@ export function StaffModeScreen(props: Props) {
                 <span className="rounded-md border border-cyan/40 bg-cyan/10 px-2 py-1 text-xs font-bold text-cyan">
                   P-{String(patient.id).padStart(3, "0")}
                 </span>
+              </div>
+              <div className="mt-4 rounded-xl border border-line bg-panel2 p-3">
+                <label className="text-xs font-bold text-muted" htmlFor="staff-patient-search">환자 이름 / 등록번호 검색</label>
+                <div className="mt-2 flex items-center gap-2 rounded-lg border border-line bg-bg px-3 py-2">
+                  <Search className="h-4 w-4 shrink-0 text-muted" />
+                  <input
+                    id="staff-patient-search"
+                    value={query}
+                    onChange={(event) => setQuery(event.target.value)}
+                    placeholder="예: 강하린 또는 P-001"
+                    className="min-w-0 flex-1 border-0 bg-transparent text-sm font-bold text-ink outline-none placeholder:text-muted"
+                  />
+                </div>
+                {query.trim() && (
+                  <div className="mt-2 grid gap-1">
+                    {searchResults.length > 0 ? (
+                      searchResults.map((item) => (
+                        <button
+                          key={item.id}
+                          type="button"
+                          onClick={() => {
+                            props.onSelectPatient(item.id);
+                            setQuery("");
+                            setNotice(`P-${String(item.id).padStart(3, "0")} ${item.name} 환자를 선택했습니다.`);
+                          }}
+                          className="flex items-center justify-between rounded-lg border border-line bg-bg px-3 py-2 text-left text-xs font-bold text-muted hover:border-cyan hover:text-ink"
+                        >
+                          <span>P-{String(item.id).padStart(3, "0")} · {item.name}</span>
+                          <span>{item.age}세</span>
+                        </button>
+                      ))
+                    ) : (
+                      <p className="rounded-lg border border-line bg-bg px-3 py-2 text-xs font-bold text-muted">검색 결과가 없습니다.</p>
+                    )}
+                  </div>
+                )}
               </div>
               <div className="mt-4 rounded-xl border border-line bg-panel2 p-4">
                 <p className="text-lg font-bold text-ink">{patient.name} · {patient.age}세</p>

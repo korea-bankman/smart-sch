@@ -250,6 +250,7 @@ export default function App() {
             onRandomQueue={handleRandomQueue}
             onReset={handleReset}
             onOpenDetail={() => setPatientDetailOpen(true)}
+            onSelectPatient={setSelectedPatientId}
           />
         )}
 
