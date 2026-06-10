@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { AlertTriangle, Bot, CheckCircle2, Clock3, RotateCcw, Search, Send, Shuffle, Siren, UserCheck } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Clock3, RotateCcw, Search, Send, Shuffle, Siren, TrendingDown, UserCheck } from "lucide-react";
 import type { Metrics, Patient, Room } from "../types";
 import { DigitalTwin } from "./DigitalTwin";
 import { OperationsPanel } from "./OperationsPanel";
@@ -26,9 +26,9 @@ export function StaffModeScreen(props: Props) {
   const [notice, setNotice] = useState("직원 조치 결과가 여기에 표시됩니다.");
   const [query, setQuery] = useState("");
   const patient = props.selectedPatient;
-  const waitOver60 = props.patients.filter((item) => item.after.waiting >= 60).length;
+  const wait60To119 = props.patients.filter((item) => item.after.waiting >= 60 && item.after.waiting < 120).length;
   const waitOver120 = props.patients.filter((item) => item.after.waiting >= 120).length;
-  const aiSuggestedPatients = props.patients.filter((item) => item.before.total - item.after.total >= 10).length;
+  const averageSaved = props.patients.reduce((sum, item) => sum + Math.max(0, item.before.total - item.after.total), 0) / Math.max(1, props.patients.length);
   const congestionRank = props.rooms.filter((room) => room.type === "exam").sort((a, b) => b.queue - a.queue);
   const searchResults = props.patients
     .filter((item) => {
@@ -46,12 +46,14 @@ export function StaffModeScreen(props: Props) {
 
   return (
     <div className="grid gap-3">
-      <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+      <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-7">
         <StaffStat label="전체 환자" value={`${props.metrics.currentPatients.toLocaleString()}명`} sub="시뮬레이션 대상" icon={UserCheck} />
         <StaffStat label="혼잡순위 1위" value={congestionRank[0]?.name ?? "-"} sub={`${congestionRank[0]?.queue ?? 0}명 대기`} icon={AlertTriangle} tone="text-yellow" />
-        <StaffStat label="AI 권고" value={`${aiSuggestedPatients}명`} sub="10분 이상 절감 예상" icon={Bot} tone="text-cyan" />
-        <StaffStat label="60분 이상 대기" value={`${waitOver60}명`} sub="장기대기 주의" icon={Clock3} tone="text-yellow" />
+        <StaffStat label="혼잡순위 2위" value={congestionRank[1]?.name ?? "-"} sub={`${congestionRank[1]?.queue ?? 0}명 대기`} icon={AlertTriangle} tone="text-yellow" />
+        <StaffStat label="혼잡순위 3위" value={congestionRank[2]?.name ?? "-"} sub={`${congestionRank[2]?.queue ?? 0}명 대기`} icon={AlertTriangle} tone="text-yellow" />
+        <StaffStat label="60~119분 대기" value={`${wait60To119}명`} sub="중복 없는 구간" icon={Clock3} tone="text-yellow" />
         <StaffStat label="120분 이상 대기" value={`${waitOver120}명`} sub="장기대기 위험" icon={Clock3} tone="text-red" />
+        <StaffStat label="절감 효과" value={minutes(averageSaved)} sub="환자 1명당 평균" icon={TrendingDown} tone="text-green" />
       </section>
 
       <section className="grid min-w-0 gap-3 xl:grid-cols-[0.85fr_1.1fr_0.85fr]">
@@ -161,7 +163,7 @@ export function StaffModeScreen(props: Props) {
             <div className="mt-3 grid gap-2">
               <ActionButton icon={Siren} label="응급환자 등록" tone="border-red/40 bg-red/10 text-red" onClick={() => runAction("응급환자 유입 상황을 등록하고 영상의학센터 대기열을 갱신했습니다.", props.onEmergency)} />
               <ActionButton icon={Shuffle} label="대기열 갱신" tone="border-yellow/40 bg-yellow/10 text-yellow" onClick={() => runAction("검사실별 대기열이 최신 시뮬레이션 값으로 갱신되었습니다.", props.onRandomQueue)} />
-              <ActionButton icon={Bot} label={props.aiEnabled ? "AI 적용 중" : "AI 적용"} tone="border-cyan/40 bg-cyan/10 text-cyan" onClick={() => runAction(props.aiEnabled ? "AI 최적화 적용을 해제했습니다." : "AI 최적화를 적용했습니다.", props.onAi)} />
+              <ActionButton icon={TrendingDown} label={props.aiEnabled ? "AI 적용 중" : "AI 적용"} tone="border-cyan/40 bg-cyan/10 text-cyan" onClick={() => runAction(props.aiEnabled ? "AI 최적화 적용을 해제했습니다." : "AI 최적화를 적용했습니다.", props.onAi)} />
             </div>
             <div className="mt-3 rounded-lg border border-cyan/30 bg-cyan/10 p-3">
               <p className="text-xs font-bold text-cyan">최근 조치</p>
