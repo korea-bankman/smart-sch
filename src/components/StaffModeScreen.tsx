@@ -6,6 +6,7 @@ import { OperationsPanel } from "./OperationsPanel";
 import { QueuePanel } from "./QueuePanel";
 import { minutes } from "../lib/ui";
 import { examLabels } from "../data/hospital";
+import { getPatientRouteInsight } from "../lib/patientInsights";
 
 type Props = {
   rooms: Room[];
@@ -26,6 +27,7 @@ export function StaffModeScreen(props: Props) {
   const [notice, setNotice] = useState("직원 조치 결과가 여기에 표시됩니다.");
   const [query, setQuery] = useState("");
   const patient = props.selectedPatient;
+  const patientInsight = patient ? getPatientRouteInsight(patient) : undefined;
   const wait60To119 = props.patients.filter((item) => item.after.waiting >= 60 && item.after.waiting < 120).length;
   const waitOver120 = props.patients.filter((item) => item.after.waiting >= 120).length;
   const averageSaved = props.patients.reduce((sum, item) => sum + Math.max(0, item.before.total - item.after.total), 0) / Math.max(1, props.patients.length);
@@ -115,8 +117,11 @@ export function StaffModeScreen(props: Props) {
                 <p className="mt-1 text-sm font-semibold leading-6 text-green">
                   추천 {patient.aiOrder.map((exam) => examLabels[exam]).join(" -> ")}
                 </p>
+                <p className="mt-2 text-xs font-bold text-cyan">
+                  추천 결과 {patientInsight?.statusLabel}
+                </p>
                 <p className="mt-2 text-xs font-bold text-muted">
-                  예상 절감 {minutes(Math.max(0, patient.before.total - patient.after.total))}
+                  예상 절감 {minutes(patientInsight?.savedTotal ?? 0)}
                 </p>
               </div>
               <div className="mt-3 grid grid-cols-2 gap-2">

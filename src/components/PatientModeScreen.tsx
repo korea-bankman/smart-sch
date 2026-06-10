@@ -3,6 +3,7 @@ import type { Patient, Room } from "../types";
 import { PatientCompanionPanel } from "./PatientCompanionPanel";
 import { DigitalTwin } from "./DigitalTwin";
 import { examLabels } from "../data/hospital";
+import { getPatientRouteInsight } from "../lib/patientInsights";
 import { minutes } from "../lib/ui";
 
 type Props = {
@@ -23,7 +24,7 @@ export function PatientModeScreen({ patient, rooms, patients, aiEnabled, running
   const total = patient.aiOrder.length;
   const progress = Math.min(100, (completed / Math.max(1, total)) * 100);
   const nextExam = patient.aiOrder[0];
-  const saved = Math.max(0, patient.before.total - patient.after.total);
+  const insight = getPatientRouteInsight(patient);
 
   return (
     <section className="grid gap-4 xl:grid-cols-[minmax(360px,440px)_minmax(0,1fr)] xl:items-start">
@@ -68,7 +69,15 @@ export function PatientModeScreen({ patient, rooms, patients, aiEnabled, running
           <div className="glass rounded-xl p-4">
             <h2 className="text-sm font-bold text-ink">알림</h2>
             <div className="mt-3 grid gap-2">
-              <Notice icon={Bell} title="더 빠른 경로 적용됨" body={`${examLabels[nextExam]} 먼저 진행하면 ${minutes(saved)}을 절약할 수 있습니다.`} />
+              <Notice
+                icon={Bell}
+                title={insight.sameOrder ? "현재 순서 유지" : "더 빠른 경로 적용됨"}
+                body={
+                  insight.sameOrder
+                    ? "검사 순서를 바꾸지 않는 것이 현재 대기 상황에서 가장 적합합니다."
+                    : `${examLabels[nextExam]} 먼저 진행하면 ${minutes(insight.savedTotal)}을 절약할 수 있습니다.`
+                }
+              />
               <Notice icon={Headphones} title="접근성 안내" body={patient.mode === "wheelchair" ? "엘리베이터 우선 경로와 여유 이동시간이 적용되었습니다." : "필요 시 직원 호출 또는 보호자 공유를 사용할 수 있습니다."} />
               <Notice icon={Share2} title="보호자 공유" body="현재 안내 경로는 데모용 시뮬레이션 값입니다." />
             </div>

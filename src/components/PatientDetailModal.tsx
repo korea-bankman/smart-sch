@@ -1,6 +1,7 @@
 import { X } from "lucide-react";
 import type { Patient } from "../types";
 import { examLabels } from "../data/hospital";
+import { getPatientRouteInsight } from "../lib/patientInsights";
 import { minutes } from "../lib/ui";
 
 type Props = {
@@ -12,9 +13,7 @@ type Props = {
 export function PatientDetailModal({ patient, open, onClose }: Props) {
   if (!open || !patient) return null;
 
-  const savedWaiting = Math.max(0, patient.before.waiting - patient.after.waiting);
-  const savedWalking = Math.max(0, patient.before.walking - patient.after.walking);
-  const savedTotal = Math.max(0, patient.before.total - patient.after.total);
+  const insight = getPatientRouteInsight(patient);
 
   return (
     <div className="fixed inset-0 z-50 grid place-items-center bg-black/70 p-4 backdrop-blur-sm">
@@ -40,16 +39,17 @@ export function PatientDetailModal({ patient, open, onClose }: Props) {
           <div className="grid gap-3">
             <InfoCard label="환자 특성" value={`${patient.age}세 · ${modeLabel(patient.mode)}`} />
             <InfoCard label="당일 검사 목록" value={patient.exams.map((exam) => examLabels[exam]).join(", ")} />
-            <InfoCard label="AI 판단 요약" value="혼잡 검사실은 뒤로 미루고, 이동/대기/검사시간의 합이 가장 낮은 순서를 선택했습니다." />
+            <InfoCard label="추천 결과" value={insight.statusLabel} />
+            <InfoCard label="AI 판단 요약" value={insight.summary} />
           </div>
 
           <div className="grid gap-3">
             <RouteCompare title="기존 고정 순서" order={patient.fixedOrder.map((exam) => examLabels[exam])} total={patient.before.total} tone="text-red" />
-            <RouteCompare title="AI 추천 순서" order={patient.aiOrder.map((exam) => examLabels[exam])} total={patient.after.total} tone="text-green" />
+            <RouteCompare title="AI 추천 순서" order={patient.aiOrder.map((exam) => examLabels[exam])} total={insight.displayAfterTotal} tone="text-green" />
             <div className="grid grid-cols-3 gap-3">
-              <Metric label="대기 절감" value={minutes(savedWaiting)} />
-              <Metric label="이동 절감" value={minutes(savedWalking)} />
-              <Metric label="총 절감" value={minutes(savedTotal)} />
+              <Metric label="대기 절감" value={minutes(insight.savedWaiting)} />
+              <Metric label="이동 절감" value={minutes(insight.savedWalking)} />
+              <Metric label="총 절감" value={minutes(insight.savedTotal)} />
             </div>
           </div>
         </div>

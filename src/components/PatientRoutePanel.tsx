@@ -1,5 +1,6 @@
 import type { Patient } from "../types";
 import { examLabels } from "../data/hospital";
+import { getPatientRouteInsight } from "../lib/patientInsights";
 import { minutes } from "../lib/ui";
 
 type Props = {
@@ -11,6 +12,8 @@ type Props = {
 };
 
 export function PatientRoutePanel({ patient, patients, selectedPatientId, onSelect, onOpenDetail }: Props) {
+  const insight = patient ? getPatientRouteInsight(patient) : undefined;
+
   return (
     <section className="glass rounded-xl p-4">
       <div className="flex items-center justify-between">
@@ -41,7 +44,7 @@ export function PatientRoutePanel({ patient, patients, selectedPatientId, onSele
               </div>
               <div className="rounded-lg border border-green/40 bg-green/10 px-3 py-2 text-right">
                 <p className="text-xs font-bold text-muted">총 절감</p>
-                <p className="text-lg font-bold text-green">{minutes(Math.max(0, patient.before.total - patient.after.total))}</p>
+                <p className="text-lg font-bold text-green">{minutes(insight?.savedTotal ?? 0)}</p>
               </div>
             </div>
             <button
@@ -53,10 +56,18 @@ export function PatientRoutePanel({ patient, patients, selectedPatientId, onSele
             </button>
           </div>
           <RouteBox title="기존 고정 순서" order={patient.fixedOrder.map((exam) => examLabels[exam])} total={patient.before.total} tone="text-red" />
-          <RouteBox title="AI 추천 순서" order={patient.aiOrder.map((exam) => examLabels[exam])} total={patient.after.total} tone="text-green" />
+          <RouteBox title="AI 추천 순서" order={patient.aiOrder.map((exam) => examLabels[exam])} total={insight?.displayAfterTotal ?? patient.after.total} tone="text-green" />
+          {insight?.sameOrder && (
+            <div className="rounded-lg border border-cyan/30 bg-cyan/10 p-3">
+              <p className="text-xs font-bold text-cyan">{insight.statusLabel}</p>
+              <p className="mt-1 text-xs font-semibold leading-5 text-muted">
+                이 환자는 검사 순서가 같으므로 개인 경로 절감은 0분으로 표시합니다. 전체 개선율은 운영 단위의 대기열 완화 효과입니다.
+              </p>
+            </div>
+          )}
           <div className="grid grid-cols-2 gap-2">
-            <MiniMetric label="대기 감소" value={minutes(Math.max(0, patient.before.waiting - patient.after.waiting))} />
-            <MiniMetric label="이동 감소" value={minutes(Math.max(0, patient.before.walking - patient.after.walking))} />
+            <MiniMetric label="대기 감소" value={minutes(insight?.savedWaiting ?? 0)} />
+            <MiniMetric label="이동 감소" value={minutes(insight?.savedWalking ?? 0)} />
           </div>
         </div>
       )}

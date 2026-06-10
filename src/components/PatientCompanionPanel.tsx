@@ -1,6 +1,7 @@
 import { ArrowRight, CheckCircle2, Clock3, Footprints, MapPinned, Navigation, ShieldCheck, Stethoscope, TimerReset } from "lucide-react";
 import type { Patient, Room } from "../types";
 import { examLabels, examToRoom } from "../data/hospital";
+import { getPatientRouteInsight } from "../lib/patientInsights";
 import { congestionLabel, minutes } from "../lib/ui";
 
 type Props = {
@@ -20,7 +21,7 @@ export function PatientCompanionPanel({ patient, rooms, onOpenDetail }: Props) {
 
   const firstExam = patient.aiOrder[0];
   const nextRoom = rooms.find((room) => room.id === examToRoom[firstExam]);
-  const saved = Math.max(0, patient.before.total - patient.after.total);
+  const insight = getPatientRouteInsight(patient);
   const nextFloor = nextRoom ? `${nextRoom.floor}층` : "확인 중";
   const nextCongestion = nextRoom ? congestionLabel(nextRoom.queue) : "확인 중";
   const elevatorQueue = rooms.filter((room) => room.type === "core").reduce((sum, room) => sum + room.queue, 0);
@@ -53,9 +54,9 @@ export function PatientCompanionPanel({ patient, rooms, onOpenDetail }: Props) {
         </div>
 
         <div className="grid grid-cols-3 gap-2">
-          <PatientMetric icon={Clock3} label="예상 체류" value={minutes(patient.after.total)} />
-          <PatientMetric icon={Footprints} label="이동 시간" value={minutes(patient.after.walking)} />
-          <PatientMetric icon={ShieldCheck} label="절감 시간" value={minutes(saved)} />
+          <PatientMetric icon={Clock3} label="예상 체류" value={minutes(insight.displayAfterTotal)} />
+          <PatientMetric icon={Footprints} label="이동 시간" value={minutes(insight.displayAfterWalking)} />
+          <PatientMetric icon={ShieldCheck} label="절감 시간" value={minutes(insight.savedTotal)} />
         </div>
 
         <div className="rounded-xl border border-yellow/40 bg-yellow/10 p-4">
@@ -76,7 +77,17 @@ export function PatientCompanionPanel({ patient, rooms, onOpenDetail }: Props) {
         </div>
 
         <div className="rounded-xl border border-line bg-panel2 p-4">
-          <p className="text-xs font-bold text-muted">오늘의 AI 추천 검사 순서</p>
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-xs font-bold text-muted">오늘의 AI 추천 검사 순서</p>
+            <span className="rounded-md border border-cyan/30 bg-cyan/10 px-2 py-1 text-[11px] font-bold text-cyan">
+              {insight.statusLabel}
+            </span>
+          </div>
+          {insight.sameOrder && (
+            <p className="mt-2 text-xs font-semibold leading-5 text-muted">
+              현재 대기 상황에서는 기존 순서를 유지하는 안내가 가장 적합합니다.
+            </p>
+          )}
           <div className="mt-3 grid gap-2">
             {patient.aiOrder.map((exam, index) => {
               const room = rooms.find((item) => item.id === examToRoom[exam]);
