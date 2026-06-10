@@ -17,6 +17,7 @@ import { RoleSwitch } from "./components/RoleSwitch";
 import { DemoEventOverlay } from "./components/DemoEventOverlay";
 import { StaffModeScreen } from "./components/StaffModeScreen";
 import { PatientModeScreen } from "./components/PatientModeScreen";
+import { CinematicDemo } from "./components/CinematicDemo";
 
 export default function App() {
   const [rooms, setRooms] = useState<Room[]>(() => cloneRooms());
@@ -31,6 +32,7 @@ export default function App() {
   const [demoActive, setDemoActive] = useState(false);
   const [demoStep, setDemoStep] = useState("");
   const [demoStage, setDemoStage] = useState(0);
+  const [cinematicOpen, setCinematicOpen] = useState(false);
   const [patientDetailOpen, setPatientDetailOpen] = useState(false);
   const frameRef = useRef<number | null>(null);
   const lastFrameRef = useRef<number>(0);
@@ -100,6 +102,7 @@ export default function App() {
     setDemoActive(false);
     setDemoStep("");
     setDemoStage(0);
+    setCinematicOpen(false);
     setViewMode("patient");
     setAudienceMode("simulation");
     setPatients(generatePatients(baseRooms, "normal", 20260605));
@@ -205,6 +208,7 @@ export default function App() {
               onRandomQueue={handleRandomQueue}
               onReset={handleReset}
               onDemo={handleDemoMode}
+              onCinematicDemo={() => setCinematicOpen(true)}
               onMode={handleMode}
             />
             <ViewTabs value={viewMode} onChange={setViewMode} />
@@ -266,6 +270,7 @@ export default function App() {
         )}
       </div>
       <PatientDetailModal patient={selectedPatient} open={patientDetailOpen} onClose={() => setPatientDetailOpen(false)} />
+      <CinematicDemo open={cinematicOpen} rooms={rooms} patients={patients} metrics={metrics} onClose={() => setCinematicOpen(false)} />
     </main>
   );
 }

@@ -1,4 +1,4 @@
-import { AlertTriangle, Bot, Clapperboard, Play, RotateCcw, Shuffle, Users } from "lucide-react";
+import { AlertTriangle, Bot, Clapperboard, Film, Play, RotateCcw, Shuffle, Users } from "lucide-react";
 import type { Mode } from "../types";
 
 type Props = {
@@ -14,6 +14,7 @@ type Props = {
   onRandomQueue: () => void;
   onReset: () => void;
   onDemo: () => void;
+  onCinematicDemo: () => void;
   onMode: (mode: Mode) => void;
 };
 
@@ -47,22 +48,37 @@ export function ControlDock(props: Props) {
 
   return (
     <section className="glass rounded-xl p-3">
-      <div className="grid gap-3 xl:grid-cols-[1.1fr_1.5fr_1fr] xl:items-stretch">
-        <button
-          type="button"
-          onClick={props.onDemo}
-          className={`flex min-h-[82px] items-center justify-center gap-3 rounded-xl border px-4 text-left transition ${
-            props.demoActive ? "border-green bg-green/15 text-green" : "border-cyan/50 bg-cyan/15 text-cyan hover:bg-cyan/20"
-          }`}
-        >
-          <span className="grid h-11 w-11 place-items-center rounded-xl bg-bg/60">
-            <Clapperboard className="h-6 w-6" />
-          </span>
-          <span>
-            <span className="block text-base font-bold">Demo Mode</span>
-            <span className="mt-1 block text-xs font-semibold text-muted">병목 발생부터 AI 재배치까지 자동 실행</span>
-          </span>
-        </button>
+      <div className="grid gap-3 xl:grid-cols-[1.25fr_1.5fr_1fr] xl:items-stretch">
+        <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2">
+          <button
+            type="button"
+            onClick={props.onCinematicDemo}
+            className="flex min-h-[82px] items-center justify-center gap-3 rounded-xl border border-green/50 bg-green/15 px-4 text-left text-green transition hover:bg-green/20"
+          >
+            <span className="grid h-11 w-11 place-items-center rounded-xl bg-bg/60">
+              <Film className="h-6 w-6" />
+            </span>
+            <span>
+              <span className="block text-base font-bold">Play Cinematic Demo</span>
+              <span className="mt-1 block text-xs font-semibold text-muted">60~90초 발표용 스토리 모드</span>
+            </span>
+          </button>
+          <button
+            type="button"
+            onClick={props.onDemo}
+            className={`flex min-h-[82px] items-center justify-center gap-3 rounded-xl border px-4 text-left transition ${
+              props.demoActive ? "border-green bg-green/15 text-green" : "border-cyan/50 bg-cyan/15 text-cyan hover:bg-cyan/20"
+            }`}
+          >
+            <span className="grid h-11 w-11 place-items-center rounded-xl bg-bg/60">
+              <Clapperboard className="h-6 w-6" />
+            </span>
+            <span>
+              <span className="block text-base font-bold">Demo Mode</span>
+              <span className="mt-1 block text-xs font-semibold text-muted">병목 발생부터 AI 재배치까지 자동 실행</span>
+            </span>
+          </button>
+        </div>
 
         <div className="rounded-xl border border-line bg-panel2 p-2">
           <div className="mb-2 px-1 text-xs font-bold text-muted">시뮬레이션 제어</div>
