@@ -218,38 +218,54 @@ function ElevatorCore({ progress }: { progress: number }) {
 }
 
 function PatientSwarm({ sceneIndex, progress }: { sceneIndex: number; progress: number }) {
-  const mesh = useRef<THREE.InstancedMesh>(null);
+  const bodyMesh = useRef<THREE.InstancedMesh>(null);
+  const headMesh = useRef<THREE.InstancedMesh>(null);
   const dummy = useMemo(() => new THREE.Object3D(), []);
   const color = useMemo(() => new THREE.Color(), []);
-  const count = 180;
+  const count = 110;
 
   useFrame(({ clock }) => {
-    if (!mesh.current) return;
+    if (!bodyMesh.current || !headMesh.current) return;
     for (let index = 0; index < count; index += 1) {
-      const lane = index % 9;
-      const floor = index % 4 === 0 ? 1 : 2;
-      const y = floor === 1 ? 0.48 : FLOOR_HEIGHT + 0.48;
-      const baseX = -3.2 + lane * 0.75;
+      const lane = index % 7;
+      const floor = index % 5 === 0 ? 1 : 2;
+      const baseY = floor === 1 ? 0.42 : FLOOR_HEIGHT + 0.42;
+      const baseX = -3.05 + lane * 0.88;
       const speed = sceneIndex < 5 ? 0.65 : 1.05;
-      const z = -3.55 + ((clock.elapsedTime * speed + index * 0.23) % 7.2);
-      const spread = sceneIndex < 2 ? Math.sin(index) * 0.15 : Math.sin(index + clock.elapsedTime) * 0.28;
-      dummy.position.set(baseX + spread, y, z);
+      const z = -3.45 + ((clock.elapsedTime * speed + index * 0.31) % 6.95);
+      const spread = Math.sin(index * 1.7) * 0.08;
       const scale = sceneIndex === 0 ? lerp(0.72, 1.08, progress) : 0.88;
+      color.set(sceneIndex < 3 ? "#f6c851" : sceneIndex >= 5 ? "#35d07f" : "#28d3ff");
+
+      dummy.position.set(baseX + spread, baseY - 0.1, z);
       dummy.scale.setScalar(scale);
       dummy.updateMatrix();
-      mesh.current.setMatrixAt(index, dummy.matrix);
-      color.set(sceneIndex < 3 ? "#f6c851" : sceneIndex >= 5 ? "#35d07f" : "#28d3ff");
-      mesh.current.setColorAt(index, color);
+      bodyMesh.current.setMatrixAt(index, dummy.matrix);
+      bodyMesh.current.setColorAt(index, color);
+
+      dummy.position.set(baseX + spread, baseY + 0.13 * scale, z);
+      dummy.scale.setScalar(scale);
+      dummy.updateMatrix();
+      headMesh.current.setMatrixAt(index, dummy.matrix);
+      headMesh.current.setColorAt(index, color);
     }
-    mesh.current.instanceMatrix.needsUpdate = true;
-    if (mesh.current.instanceColor) mesh.current.instanceColor.needsUpdate = true;
+    bodyMesh.current.instanceMatrix.needsUpdate = true;
+    headMesh.current.instanceMatrix.needsUpdate = true;
+    if (bodyMesh.current.instanceColor) bodyMesh.current.instanceColor.needsUpdate = true;
+    if (headMesh.current.instanceColor) headMesh.current.instanceColor.needsUpdate = true;
   });
 
   return (
-    <instancedMesh ref={mesh} args={[undefined, undefined, count]}>
-      <sphereGeometry args={[0.055, 12, 12]} />
-      <meshStandardMaterial vertexColors color="#28d3ff" emissive="#28d3ff" emissiveIntensity={0.18} />
-    </instancedMesh>
+    <group>
+      <instancedMesh ref={bodyMesh} args={[undefined, undefined, count]} castShadow>
+        <capsuleGeometry args={[0.045, 0.24, 6, 10]} />
+        <meshStandardMaterial vertexColors color="#28d3ff" emissive="#28d3ff" emissiveIntensity={0.18} roughness={0.45} />
+      </instancedMesh>
+      <instancedMesh ref={headMesh} args={[undefined, undefined, count]} castShadow>
+        <sphereGeometry args={[0.072, 12, 12]} />
+        <meshStandardMaterial vertexColors color="#28d3ff" emissive="#28d3ff" emissiveIntensity={0.22} roughness={0.4} />
+      </instancedMesh>
+    </group>
   );
 }
 
@@ -315,15 +331,19 @@ function AvatarJourney({ sceneIndex, progress }: { sceneIndex: number; progress:
 
   return (
     <group ref={group}>
-      <mesh castShadow>
-        <sphereGeometry args={[0.16, 24, 24]} />
-        <meshStandardMaterial color="#ffffff" emissive="#28d3ff" emissiveIntensity={1.1} />
+      <mesh position={[0, -0.16, 0]} castShadow>
+        <capsuleGeometry args={[0.11, 0.42, 8, 18]} />
+        <meshStandardMaterial color="#28d3ff" emissive="#28d3ff" emissiveIntensity={0.65} roughness={0.35} />
       </mesh>
-      <mesh position={[0, -0.22, 0]} castShadow>
-        <capsuleGeometry args={[0.08, 0.32, 8, 16]} />
-        <meshStandardMaterial color="#28d3ff" emissive="#28d3ff" emissiveIntensity={0.35} />
+      <mesh position={[0, 0.18, 0]} castShadow>
+        <sphereGeometry args={[0.17, 24, 24]} />
+        <meshStandardMaterial color="#ffffff" emissive="#28d3ff" emissiveIntensity={1.25} />
       </mesh>
-      <Text position={[0, 0.44, 0]} fontSize={0.12} color="#ffffff" anchorX="center">
+      <mesh rotation={[-Math.PI / 2, 0, 0]}>
+        <ringGeometry args={[0.28, 0.36, 48]} />
+        <meshBasicMaterial color="#35d07f" transparent opacity={0.62} />
+      </mesh>
+      <Text position={[0, 0.52, 0]} fontSize={0.13} color="#ffffff" anchorX="center">
         P-023
       </Text>
     </group>

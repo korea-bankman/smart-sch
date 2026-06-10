@@ -159,34 +159,50 @@ function pointAtRoute(route: Vec3[], progress: number) {
 }
 
 function PatientCloud({ patients, running }: { patients: Patient[]; running: boolean }) {
-  const mesh = useRef<THREE.InstancedMesh>(null);
+  const bodyMesh = useRef<THREE.InstancedMesh>(null);
+  const headMesh = useRef<THREE.InstancedMesh>(null);
   const dummy = useMemo(() => new THREE.Object3D(), []);
   const color = useMemo(() => new THREE.Color(), []);
-  const shown = useMemo(() => patients.slice(0, 1000), [patients]);
+  const shown = useMemo(() => patients.filter((_, index) => index % 8 === 0).slice(0, 120), [patients]);
   const visualOffset = useRef(0);
 
   useFrame((_, delta) => {
-    if (!mesh.current) return;
+    if (!bodyMesh.current || !headMesh.current) return;
     if (running) visualOffset.current = (visualOffset.current + delta * 0.045) % 1;
     shown.forEach((patient, index) => {
       const p = pointAtRoute(patient.route, (patient.progress + visualOffset.current) % 1);
-      dummy.position.copy(p);
       const scale = patient.mode === "wheelchair" ? 1.35 : patient.mode === "elderly" ? 1.15 : 1;
+      color.set(patient.mode === "elderly" ? "#f6c851" : patient.mode === "wheelchair" ? "#a78bfa" : "#28d3ff");
+
+      dummy.position.set(p.x, p.y - 0.11, p.z);
       dummy.scale.setScalar(scale);
       dummy.updateMatrix();
-      mesh.current?.setMatrixAt(index, dummy.matrix);
-      color.set(patient.mode === "elderly" ? "#f6c851" : patient.mode === "wheelchair" ? "#a78bfa" : "#28d3ff");
-      mesh.current?.setColorAt(index, color);
+      bodyMesh.current?.setMatrixAt(index, dummy.matrix);
+      bodyMesh.current?.setColorAt(index, color);
+
+      dummy.position.set(p.x, p.y + 0.12 * scale, p.z);
+      dummy.scale.setScalar(scale);
+      dummy.updateMatrix();
+      headMesh.current?.setMatrixAt(index, dummy.matrix);
+      headMesh.current?.setColorAt(index, color);
     });
-    mesh.current.instanceMatrix.needsUpdate = true;
-    if (mesh.current.instanceColor) mesh.current.instanceColor.needsUpdate = true;
+    bodyMesh.current.instanceMatrix.needsUpdate = true;
+    headMesh.current.instanceMatrix.needsUpdate = true;
+    if (bodyMesh.current.instanceColor) bodyMesh.current.instanceColor.needsUpdate = true;
+    if (headMesh.current.instanceColor) headMesh.current.instanceColor.needsUpdate = true;
   });
 
   return (
-    <instancedMesh ref={mesh} args={[undefined, undefined, shown.length]} castShadow>
-      <sphereGeometry args={[0.055, 12, 12]} />
-      <meshStandardMaterial vertexColors color="#28d3ff" emissive="#28d3ff" emissiveIntensity={0.08} />
-    </instancedMesh>
+    <group>
+      <instancedMesh ref={bodyMesh} args={[undefined, undefined, shown.length]} castShadow>
+        <capsuleGeometry args={[0.045, 0.22, 6, 10]} />
+        <meshStandardMaterial vertexColors color="#28d3ff" emissive="#28d3ff" emissiveIntensity={0.12} roughness={0.48} />
+      </instancedMesh>
+      <instancedMesh ref={headMesh} args={[undefined, undefined, shown.length]} castShadow>
+        <sphereGeometry args={[0.07, 12, 12]} />
+        <meshStandardMaterial vertexColors color="#28d3ff" emissive="#28d3ff" emissiveIntensity={0.15} roughness={0.42} />
+      </instancedMesh>
+    </group>
   );
 }
 
@@ -239,14 +255,21 @@ function SelectedPatientHalo({ patient, running }: { patient: Patient | undefine
   if (!patient) return null;
   return (
     <group ref={group}>
-      <mesh castShadow>
-        <sphereGeometry args={[0.14, 24, 24]} />
+      <mesh position={[0, -0.12, 0]} castShadow>
+        <capsuleGeometry args={[0.09, 0.36, 8, 16]} />
+        <meshStandardMaterial color="#28d3ff" emissive="#28d3ff" emissiveIntensity={0.75} />
+      </mesh>
+      <mesh position={[0, 0.17, 0]} castShadow>
+        <sphereGeometry args={[0.13, 24, 24]} />
         <meshStandardMaterial color="#ffffff" emissive="#28d3ff" emissiveIntensity={1.25} />
       </mesh>
       <mesh rotation={[-Math.PI / 2, 0, 0]}>
         <ringGeometry args={[0.24, 0.31, 40]} />
         <meshBasicMaterial color="#28d3ff" transparent opacity={0.55} />
       </mesh>
+      <Text position={[0, 0.45, 0]} fontSize={0.11} color="#ffffff" anchorX="center">
+        SELECTED
+      </Text>
     </group>
   );
 }
