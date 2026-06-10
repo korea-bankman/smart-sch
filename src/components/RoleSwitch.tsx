@@ -14,12 +14,12 @@ const modes: Array<{ id: AudienceMode; label: string; icon: typeof MonitorCog }>
   },
   {
     id: "staff",
-    label: "직원용 관제",
+    label: "직원용",
     icon: Building2
   },
   {
     id: "patient",
-    label: "환자용 안내",
+    label: "환자용",
     icon: Smartphone
   }
 ];
