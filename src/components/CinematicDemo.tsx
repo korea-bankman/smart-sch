@@ -4,14 +4,13 @@ import { Pause, Play, RotateCcw, SkipForward, X } from "lucide-react";
 import type { ReactNode } from "react";
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
-import type { Metrics, Patient, Room, Vec3 } from "../types";
+import type { Metrics, Room, Vec3 } from "../types";
 import { examLabels, examToRoom, FLOOR_HEIGHT } from "../data/hospital";
 import { minutes, roomTone } from "../lib/ui";
 
 type Props = {
   open: boolean;
   rooms: Room[];
-  patients: Patient[];
   metrics: Metrics;
   onClose: () => void;
 };
@@ -69,6 +68,8 @@ const scenes: SceneDef[] = [
 ];
 
 const totalSeconds = scenes.reduce((sum, scene) => sum + scene.seconds, 0);
+const cinematicOriginalRoute = "채혈 -> 심전도 -> 영상검사";
+const cinematicOptimizedRoute = "심전도 -> 영상검사 -> 채혈";
 
 const floorOutline: Array<[number, number]> = [
   [-3.7, -4.25],
@@ -498,8 +499,8 @@ function ScenePanel({ sceneIndex, progress, metrics }: { sceneIndex: number; pro
         <div className="max-w-xl rounded-2xl border border-cyan/40 bg-bg/80 p-4 shadow-2xl backdrop-blur">
           <p className="text-xs font-bold uppercase tracking-wide text-cyan">AI Route Evaluation</p>
           <div className="mt-4 grid gap-3 md:grid-cols-2">
-            <RouteCard tone="text-red" title="Original" body="Blood Draw -> ECG -> Imaging" time="11:52 AM" />
-            <RouteCard tone="text-green" title="Optimized" body="ECG -> Imaging -> Blood Draw" time="11:31 AM" />
+            <RouteCard tone="text-red" title="Original" body={cinematicOriginalRoute} time="11:52 AM" />
+            <RouteCard tone="text-green" title="Optimized" body={cinematicOptimizedRoute} time="11:31 AM" />
           </div>
         </div>
       )}
@@ -576,7 +577,7 @@ function RouteCard({ title, body, time, tone }: { title: string; body: string; t
   );
 }
 
-export function CinematicDemo({ open, rooms, patients, metrics, onClose }: Props) {
+export function CinematicDemo({ open, rooms, metrics, onClose }: Props) {
   const [elapsed, setElapsed] = useState(0);
   const [playing, setPlaying] = useState(true);
   const rafRef = useRef<number | null>(null);
@@ -613,9 +614,6 @@ export function CinematicDemo({ open, rooms, patients, metrics, onClose }: Props
 
   const { index: sceneIndex, progress, sceneStart } = sceneAt(elapsed);
   const percent = (elapsed / totalSeconds) * 100;
-  const patient = patients[22];
-  const originalRoute = patient?.fixedOrder.map((exam) => examLabels[exam]).join(" -> ") ?? "Blood Draw -> ECG -> Imaging";
-  const optimizedRoute = patient?.aiOrder.map((exam) => examLabels[exam]).join(" -> ") ?? `${examLabels.ecg} -> ${examLabels.imaging} -> ${examLabels.blood}`;
 
   if (!open) return null;
 
@@ -646,8 +644,8 @@ export function CinematicDemo({ open, rooms, patients, metrics, onClose }: Props
         <div className="pointer-events-none absolute right-8 top-28 z-20 hidden max-w-md rounded-2xl border border-line bg-bg/80 p-4 shadow-2xl backdrop-blur lg:block">
           <p className="text-xs font-bold uppercase tracking-wide text-cyan">Selected Patient P-023</p>
           <div className="mt-3 grid gap-2">
-            <DemoMetric label="Original route" value={originalRoute} />
-            <DemoMetric label="Optimized route" value={optimizedRoute} />
+            <DemoMetric label="Original route" value={cinematicOriginalRoute} />
+            <DemoMetric label="Optimized route" value={cinematicOptimizedRoute} />
           </div>
         </div>
       )}

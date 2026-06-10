@@ -270,7 +270,7 @@ export default function App() {
         )}
       </div>
       <PatientDetailModal patient={selectedPatient} open={patientDetailOpen} onClose={() => setPatientDetailOpen(false)} />
-      <CinematicDemo open={cinematicOpen} rooms={rooms} patients={patients} metrics={metrics} onClose={() => setCinematicOpen(false)} />
+      <CinematicDemo open={cinematicOpen} rooms={rooms} metrics={metrics} onClose={() => setCinematicOpen(false)} />
     </main>
   );
 }
