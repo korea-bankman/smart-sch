@@ -7,6 +7,8 @@ type CostResult = {
   route: Vec3[];
 };
 
+type QueueStrategy = "fixed" | "dynamic";
+
 function permutations<T>(items: T[]): T[][] {
   if (items.length <= 1) return [items];
   const result: T[][] = [];
@@ -74,16 +76,23 @@ function roomCapacity(room: Room) {
   return 2;
 }
 
-function predictedWaitingMinutes(room: Room, arrivalMinute: number) {
+function predictedWaitingMinutes(room: Room, arrivalMinute: number, strategy: QueueStrategy) {
   const capacity = roomCapacity(room);
+  if (strategy === "fixed") {
+    const staticWait = (room.queue / capacity) * room.examMinutes;
+    const fixedOrderPenalty = room.queue >= 26 ? room.examMinutes * 0.45 : room.queue >= 18 ? room.examMinutes * 0.2 : 0;
+    return staticWait * 0.68 + fixedOrderPenalty;
+  }
+
   const patientsProcessedBeforeArrival = (arrivalMinute / room.examMinutes) * capacity;
-  const queueAtArrival = Math.max(0, room.queue - patientsProcessedBeforeArrival);
+  const residualQueueFloor = room.queue >= 30 ? room.queue * 0.22 : room.queue >= 18 ? room.queue * 0.12 : 0;
+  const queueAtArrival = Math.max(residualQueueFloor, room.queue - patientsProcessedBeforeArrival);
   const rawWait = (queueAtArrival / capacity) * room.examMinutes;
-  const congestionPenalty = room.queue >= 26 && arrivalMinute < 20 ? room.examMinutes * 0.45 : 0;
+  const congestionPenalty = room.queue >= 26 && arrivalMinute < 20 ? room.examMinutes * 0.25 : 0;
   return rawWait + congestionPenalty;
 }
 
-export function estimateOrder(order: ExamId[], rooms: Room[], mode: Mode): CostResult {
+export function estimateOrder(order: ExamId[], rooms: Room[], mode: Mode, strategy: QueueStrategy = "dynamic"): CostResult {
   let current: RoomId = "checkin";
   let waiting = 0;
   let walking = 0;
@@ -96,7 +105,7 @@ export function estimateOrder(order: ExamId[], rooms: Room[], mode: Mode): CostR
     const room = getRoom(roomId, rooms);
     const route = routeBetween(current, roomId, rooms, mode);
     const walk = mobilityMinutesForRoute(route, rooms, mode);
-    const wait = predictedWaitingMinutes(room, elapsed + walk);
+    const wait = predictedWaitingMinutes(room, elapsed + walk, strategy);
     walking += walk;
     waiting += wait;
     exam += room.examMinutes;

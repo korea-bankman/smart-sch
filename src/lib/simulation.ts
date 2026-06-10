@@ -43,7 +43,7 @@ export function generatePatients(rooms: Room[], mode: Mode, seed = Date.now()): 
     const age = 20 + Math.floor(rand() * 68);
     const patientMode: Mode = mode === "normal" && age >= 72 ? "elderly" : mode;
     const fixedOrder = fixedOrderFor(exams);
-    const before = estimateOrder(fixedOrder, rooms, patientMode);
+    const before = estimateOrder(fixedOrder, rooms, patientMode, "fixed");
     const after = optimizeOrder(exams, rooms, patientMode);
     return {
       id: index + 1,
@@ -85,7 +85,7 @@ export function resetRooms() {
 export function recomputePatients(patients: Patient[], rooms: Room[], mode: Mode, aiEnabled: boolean): Patient[] {
   return patients.map((patient) => {
     const fixedOrder = fixedOrderFor(patient.exams);
-    const before = estimateOrder(fixedOrder, rooms, mode);
+    const before = estimateOrder(fixedOrder, rooms, mode, "fixed");
     const after = optimizeOrder(patient.exams, rooms, mode);
     return {
       ...patient,
