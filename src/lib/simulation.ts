@@ -3,7 +3,14 @@ import { cloneRooms, examLabels, examToRoom, getRoom } from "../data/hospital";
 import { estimateOrder, fixedOrderFor, optimizeOrder, variance } from "./optimizer";
 
 const names = ["김도윤", "이서연", "박민준", "최지우", "정하준", "강하린", "윤서아", "임지호", "한유진", "오시우"];
-const examPool: ExamId[] = ["blood", "imaging", "ecg", "respiratory", "injection", "endoscopy"];
+const weightedExamPool: Array<{ exam: ExamId; weight: number }> = [
+  { exam: "blood", weight: 34 },
+  { exam: "imaging", weight: 30 },
+  { exam: "injection", weight: 15 },
+  { exam: "ecg", weight: 12 },
+  { exam: "respiratory", weight: 8 },
+  { exam: "endoscopy", weight: 3 }
+];
 
 function random(seed: number) {
   let value = seed % 2147483647;
@@ -13,12 +20,18 @@ function random(seed: number) {
   };
 }
 
-function pickMany<T>(items: T[], count: number, rand: () => number): T[] {
-  const copy = [...items];
-  const result: T[] = [];
-  while (result.length < count && copy.length) {
-    const index = Math.floor(rand() * copy.length);
-    result.push(copy.splice(index, 1)[0]);
+function pickWeightedExams(count: number, rand: () => number): ExamId[] {
+  const candidates = weightedExamPool.map((item) => ({ ...item }));
+  const result: ExamId[] = [];
+  while (result.length < count && candidates.length) {
+    const totalWeight = candidates.reduce((sum, item) => sum + item.weight, 0);
+    let cursor = rand() * totalWeight;
+    const index = candidates.findIndex((item) => {
+      cursor -= item.weight;
+      return cursor <= 0;
+    });
+    const safeIndex = index >= 0 ? index : candidates.length - 1;
+    result.push(candidates.splice(safeIndex, 1)[0].exam);
   }
   return result;
 }
@@ -26,7 +39,7 @@ function pickMany<T>(items: T[], count: number, rand: () => number): T[] {
 export function generatePatients(rooms: Room[], mode: Mode, seed = Date.now()): Patient[] {
   const rand = random(seed);
   return Array.from({ length: 1000 }, (_, index) => {
-    const exams = pickMany(examPool, 2 + Math.floor(rand() * 3), rand);
+    const exams = pickWeightedExams(2 + Math.floor(rand() * 3), rand);
     const age = 20 + Math.floor(rand() * 68);
     const patientMode: Mode = mode === "normal" && age >= 72 ? "elderly" : mode;
     const fixedOrder = fixedOrderFor(exams);
