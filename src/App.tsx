@@ -219,11 +219,11 @@ export default function App() {
             <div className="min-w-0">
               <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-cyan">
                 <BrainCircuit className="h-4 w-4" />
-                Smart Hospital Digital Twin Prototype
+                Smart Hospital Digital Twin
               </p>
-              <h1 className="mt-2 text-2xl font-bold text-ink xl:text-3xl">AI 기반 병원 디지털 트윈 환자 동선 최적화 시스템</h1>
+              <h1 className="mt-2 text-2xl font-bold text-ink xl:text-3xl">SCH SmartFlow</h1>
               <p className="mt-2 text-sm font-semibold text-muted">
-                키오스크/WiFi/BLE/App 자동 체크인 이후, 검사실 대기열과 위치를 기반으로 총 체류시간이 가장 짧은 검사 순서를 추천합니다.
+                AI 기반 외래 환자 흐름 최적화 플랫폼 · 동선 추천을 활용한 스마트병원 운영 고도화
               </p>
             </div>
           </div>

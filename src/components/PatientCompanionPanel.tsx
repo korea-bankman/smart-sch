@@ -66,7 +66,7 @@ export function PatientCompanionPanel({ patient, rooms, onOpenDetail }: Props) {
     <section className="glass overflow-hidden rounded-xl">
       <div className="border-b border-line bg-cyan/10 p-4">
         <div className="flex items-center justify-between gap-3">
-          <p className="text-xs font-bold uppercase tracking-wide text-cyan">Patient Mobile Guide Preview</p>
+          <p className="text-xs font-bold uppercase tracking-wide text-cyan">SCH SmartFlow Patient Guide</p>
           <span className={`shrink-0 rounded-md border px-2 py-1 text-[11px] font-bold ${statusMeta.tone}`}>{statusMeta.label}</span>
         </div>
         <h2 className="mt-2 text-xl font-bold text-ink">
