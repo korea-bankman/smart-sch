@@ -119,19 +119,19 @@ export function FullHospitalMap({ rooms, nextExam, mode }: Props) {
   const elevatorWait = mode === "wheelchair" ? "휠체어 모드: 엘리베이터 대기 7~9분과 넓은 회전 동선을 반영합니다." : mode === "elderly" ? "고령자 모드: 보행속도 35% 감속과 여유 이동시간을 반영합니다." : "일반 모드: 표준 보행속도와 중앙 엘리베이터 기준으로 안내합니다.";
 
   return (
-    <section className="glass rounded-xl p-4">
+    <section className="glass rounded-xl p-3 sm:p-4">
       <div className="flex flex-col gap-3 xl:flex-row xl:items-start xl:justify-between">
         <div className="min-w-0">
           <div className="flex items-center gap-2">
-            <div className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-cyan/10 text-cyan">
-              <Building2 className="h-5 w-5" />
+            <div className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-cyan/10 text-cyan sm:h-10 sm:w-10">
+              <Building2 className="h-4 w-4 sm:h-5 sm:w-5" />
             </div>
             <div className="min-w-0">
               <p className="text-xs font-bold uppercase tracking-wide text-cyan">Smart Navigation</p>
-              <h2 className="text-xl font-black text-ink">전체 병원 안내 지도</h2>
+              <h2 className="text-lg font-black text-ink sm:text-xl">전체 병원 안내 지도</h2>
             </div>
           </div>
-          <p className="mt-2 max-w-3xl text-xs font-semibold leading-5 text-muted">
+          <p className="mt-2 hidden max-w-3xl text-xs font-semibold leading-5 text-muted sm:block">
             환자용 화면에서는 전체 병원 구조를 모식도로 제공하고, AI가 추천한 다음 검사 위치를 층별 안내판 위에 바로 강조합니다.
           </p>
         </div>
@@ -152,14 +152,14 @@ export function FullHospitalMap({ rooms, nextExam, mode }: Props) {
         </div>
       </div>
 
-      <div className="mt-4 grid gap-3 2xl:hidden">
+      <div className="mt-3 grid gap-2 2xl:hidden sm:mt-4 sm:gap-3">
         <div className="grid grid-cols-3 gap-2">
           {([1, 2, 3] as const).map((floor) => (
             <button
               key={floor}
               type="button"
               onClick={() => setFocusedFloor(floor)}
-              className={`h-10 rounded-lg border text-xs font-black transition ${
+              className={`h-9 rounded-lg border text-xs font-black transition sm:h-10 ${
                 focusedFloor === floor ? "border-cyan bg-cyan/20 text-cyan" : "border-line bg-panel2 text-muted"
               }`}
             >
@@ -200,7 +200,7 @@ export function FullHospitalMap({ rooms, nextExam, mode }: Props) {
         )}
       </div>
 
-      <div className="mt-4 grid gap-4 2xl:grid-cols-[250px_minmax(0,1fr)_290px]">
+      <div className="mt-3 grid gap-3 sm:mt-4 sm:gap-4 2xl:grid-cols-[250px_minmax(0,1fr)_290px]">
         <aside className="hidden gap-3 2xl:order-1 2xl:grid">
           <div className="rounded-xl border border-cyan/25 bg-cyan/10 p-3">
             <p className="text-xs font-bold uppercase tracking-wide text-cyan">Destination Shortcuts</p>
@@ -290,19 +290,19 @@ export function FullHospitalMap({ rooms, nextExam, mode }: Props) {
           </div>
         </aside>
 
-        <article className="order-1 min-w-0 overflow-hidden rounded-2xl border border-line bg-[#08162b] p-3 shadow-2xl 2xl:order-2">
-          <div className="flex flex-col gap-2 border-b border-line pb-3 md:flex-row md:items-center md:justify-between">
+        <article className="order-1 min-w-0 overflow-hidden rounded-2xl border border-line bg-[#08162b] p-2 shadow-2xl sm:p-3 2xl:order-2">
+          <div className="flex flex-col gap-2 border-b border-line pb-2 sm:pb-3 md:flex-row md:items-center md:justify-between">
             <div>
               <p className="text-xs font-bold uppercase tracking-wide text-cyan">Hospital Wayfinding Board</p>
-              <h3 className="text-2xl font-black text-ink">{floorNames[focusedFloor]}</h3>
+              <h3 className="text-xl font-black text-ink sm:text-2xl">{floorNames[focusedFloor]}</h3>
             </div>
-            <div className="flex flex-wrap gap-2 text-[11px] font-bold">
+            <div className="flex flex-wrap gap-1.5 text-[10px] font-bold sm:gap-2 sm:text-[11px]">
               <Badge text={`다음 검사 ${nextExamLabel}`} tone="cyan" />
               <Badge text={`선택 ${selectedRoom.name}`} tone="green" />
             </div>
           </div>
 
-          <div className="relative mt-3 h-[360px] overflow-hidden rounded-xl border border-line bg-[#0a1d38] sm:h-[420px] lg:h-[520px]">
+          <div className="relative mt-2 h-[430px] overflow-hidden rounded-xl border border-line bg-[#0a1d38] sm:mt-3 sm:h-[420px] lg:h-[520px]">
             <div
               className="absolute inset-0 opacity-40"
               style={{
@@ -313,14 +313,14 @@ export function FullHospitalMap({ rooms, nextExam, mode }: Props) {
             />
             <div className="absolute left-[8%] right-[8%] top-[47%] h-[44px] -translate-y-1/2 rounded-full border border-cyan/15 bg-cyan/8" />
             <div className="absolute bottom-[9%] left-[31%] top-[12%] w-[48px] rounded-full border border-cyan/15 bg-cyan/8" />
-            <div className="absolute left-[9%] top-[39%] rounded-full border border-cyan/30 bg-bg/80 px-3 py-1 text-[11px] font-black text-cyan">MAIN CORRIDOR</div>
-            <div className="absolute bottom-4 left-4 rounded-full border border-line bg-bg/80 px-3 py-1 text-[11px] font-bold text-muted">정문·접수 방향</div>
-            <div className="absolute right-4 top-4 rounded-full border border-line bg-bg/80 px-3 py-1 text-[11px] font-bold text-muted">Floor {focusedFloor}</div>
+            <div className="absolute left-[9%] top-[39%] hidden rounded-full border border-cyan/30 bg-bg/80 px-3 py-1 text-[11px] font-black text-cyan sm:block">MAIN CORRIDOR</div>
+            <div className="absolute bottom-3 left-3 rounded-full border border-line bg-bg/80 px-2 py-1 text-[10px] font-bold text-muted sm:bottom-4 sm:left-4 sm:px-3 sm:text-[11px]">정문·접수</div>
+            <div className="absolute right-3 top-3 rounded-full border border-line bg-bg/80 px-2 py-1 text-[10px] font-bold text-muted sm:right-4 sm:top-4 sm:px-3 sm:text-[11px]">Floor {focusedFloor}</div>
             <div className="absolute left-3 top-3 z-20 rounded-xl border border-line bg-bg/90 p-2 shadow-xl sm:left-4 sm:top-4 sm:p-3">
               <p className="text-[10px] font-bold uppercase tracking-wide text-muted">Estimated Navigation</p>
               <div className="mt-2 flex items-center gap-2">
                 <Clock3 className="h-4 w-4 text-cyan" />
-                <span className="text-lg font-black text-ink">{totalMovingMinutes}분</span>
+                <span className="text-base font-black text-ink sm:text-lg">{totalMovingMinutes}분</span>
               </div>
               <p className="mt-1 hidden text-[10px] font-bold text-muted sm:block">도보 {walkingMinutes}분 · 엘리베이터 {elevatorMinutes}분</p>
             </div>
@@ -354,13 +354,18 @@ export function FullHospitalMap({ rooms, nextExam, mode }: Props) {
               const isSelected = room.id === selectedRoom.id;
               const isNext = room.id === nextRoomId;
               const wide = room.name.length > 6 || room.type === "exam";
+              const mobileImportant = isSelected || isNext || room.type === "core";
               return (
                 <button
                   key={room.id}
                   type="button"
                   onClick={() => setSelectedRoomId(room.id)}
-                  className={`absolute -translate-x-1/2 -translate-y-1/2 rounded-xl border px-2 py-1.5 text-left shadow-xl transition hover:z-30 hover:scale-[1.04] sm:px-3 sm:py-2 ${
-                    wide ? "w-[112px] sm:w-[148px]" : "w-[96px] sm:w-[116px]"
+                  className={`absolute -translate-x-1/2 -translate-y-1/2 rounded-xl border text-left shadow-xl transition hover:z-30 hover:scale-[1.04] ${
+                    mobileImportant
+                      ? wide
+                        ? "w-[104px] px-2 py-1.5 sm:w-[148px] sm:px-3 sm:py-2"
+                        : "w-[90px] px-2 py-1.5 sm:w-[116px] sm:px-3 sm:py-2"
+                      : "grid h-8 w-8 place-items-center px-0 py-0 sm:block sm:h-auto sm:place-items-stretch sm:px-3 sm:py-2 " + (wide ? "sm:w-[148px]" : "sm:w-[116px]")
                   } ${isSelected ? "z-30 border-white bg-white text-bg ring-4 ring-cyan/25" : `${congestionStyle(room)} hover:border-white/70`} ${
                     isNext ? "animate-pulse" : ""
                   }`}
@@ -368,9 +373,9 @@ export function FullHospitalMap({ rooms, nextExam, mode }: Props) {
                 >
                   <span className="flex items-center gap-1">
                     <CircleDot className={`h-3 w-3 shrink-0 ${isSelected ? "text-bg" : ""}`} />
-                    <span className="block truncate text-[10px] font-black sm:text-[11px]">{room.name}</span>
+                    <span className={`${mobileImportant ? "block" : "hidden sm:block"} truncate text-[10px] font-black sm:text-[11px]`}>{room.name}</span>
                   </span>
-                  <span className={`mt-1 block text-[9px] font-bold sm:text-[10px] ${isSelected ? "text-bg/70" : "text-muted"}`}>
+                  <span className={`mt-1 ${mobileImportant ? "block" : "hidden"} text-[9px] font-bold sm:block sm:text-[10px] ${isSelected ? "text-bg/70" : "text-muted"}`}>
                     {roomTypeLabel(room)} · {congestionLabel(room)} · {room.queue}명
                   </span>
                 </button>
@@ -379,15 +384,15 @@ export function FullHospitalMap({ rooms, nextExam, mode }: Props) {
           </div>
         </article>
 
-        <aside className="order-3 grid content-start gap-3">
-          <div className="rounded-xl border border-cyan/35 bg-cyan/10 p-4">
+        <aside className="order-3 grid content-start gap-2 sm:gap-3">
+          <div className="rounded-xl border border-cyan/35 bg-cyan/10 p-3 sm:p-4">
             <div className="flex items-center gap-2">
               <LocateFixed className="h-4 w-4 text-cyan" />
               <p className="text-sm font-bold text-ink">선택 위치</p>
             </div>
-            <h3 className="mt-3 text-2xl font-black text-ink">{selectedRoom.name}</h3>
+            <h3 className="mt-2 text-xl font-black text-ink sm:mt-3 sm:text-2xl">{selectedRoom.name}</h3>
             <p className="mt-1 text-xs font-bold text-cyan">{selectedRoom.floor}층 · {roomTypeLabel(selectedRoom)} · 대기 {selectedRoom.queue}명</p>
-            <p className="mt-3 text-xs font-semibold leading-5 text-muted">{roomHints[selectedRoom.id] ?? "중앙 복도와 엘리베이터 코어를 기준으로 안내되는 병원 전체 지도 위치입니다."}</p>
+            <p className="mt-2 line-clamp-2 text-xs font-semibold leading-5 text-muted sm:mt-3 sm:line-clamp-none">{roomHints[selectedRoom.id] ?? "중앙 복도와 엘리베이터 코어를 기준으로 안내되는 병원 전체 지도 위치입니다."}</p>
           </div>
 
           <div className="grid grid-cols-3 gap-2">
@@ -408,7 +413,7 @@ export function FullHospitalMap({ rooms, nextExam, mode }: Props) {
             </div>
           </div>
 
-          <div className="rounded-xl border border-green/30 bg-green/10 p-4">
+          <div className="hidden rounded-xl border border-green/30 bg-green/10 p-4 sm:block">
             <div className="flex items-center gap-2">
               <Sparkles className="h-4 w-4 text-green" />
               <p className="text-sm font-bold text-ink">AI 추천과 연결</p>
@@ -418,7 +423,7 @@ export function FullHospitalMap({ rooms, nextExam, mode }: Props) {
             </p>
           </div>
 
-          <div className="rounded-xl border border-purple-400/30 bg-purple-400/10 p-4">
+          <div className="rounded-xl border border-purple-400/30 bg-purple-400/10 p-3 sm:p-4">
             <div className="flex items-center gap-2">
               <Accessibility className="h-4 w-4 text-purple-200" />
               <p className="text-sm font-bold text-ink">접근성 안내</p>

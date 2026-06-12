@@ -81,6 +81,10 @@ export default function App() {
     setAiEnabled((value) => !value);
   }
 
+  function handleEnsureAi() {
+    setAiEnabled(true);
+  }
+
   function handleRandomQueue() {
     setRooms((current) => randomizeQueues(current));
   }
@@ -286,6 +290,7 @@ export default function App() {
             aiEnabled={aiEnabled}
             running={running}
             onAi={handleAi}
+            onEnsureAi={handleEnsureAi}
             onEmergency={handleEmergency}
             onRandomQueue={handleRandomQueue}
             onReset={handleReset}

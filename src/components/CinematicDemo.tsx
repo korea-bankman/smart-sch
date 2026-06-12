@@ -479,15 +479,15 @@ function ScenePanel({ sceneIndex, progress, metrics }: { sceneIndex: number; pro
   const textIndex = Math.min(scene.narration.length - 1, Math.floor(progress * scene.narration.length));
   const isFinal = sceneIndex === 6;
   return (
-    <div className="pointer-events-none absolute inset-0 z-10 flex flex-col justify-between px-3 pb-24 pt-20 md:px-8 md:pb-36 md:pt-32">
-      <div className="max-w-sm rounded-2xl border border-line bg-bg/55 p-3 shadow-2xl backdrop-blur md:max-w-xl md:border-0 md:bg-transparent md:p-0 md:shadow-none md:backdrop-blur-0">
+    <div className="pointer-events-none absolute inset-0 z-10 flex flex-col justify-between px-3 pb-[82px] pt-[62px] sm:pb-24 sm:pt-20 md:px-8 md:pb-36 md:pt-32">
+      <div className="max-w-[280px] rounded-2xl border border-line bg-bg/50 p-2.5 shadow-2xl backdrop-blur sm:max-w-sm sm:p-3 md:max-w-xl md:border-0 md:bg-transparent md:p-0 md:shadow-none md:backdrop-blur-0">
         <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-cyan md:text-xs md:tracking-[0.32em]">{scene.title}</p>
-        <h2 className="mt-2 text-2xl font-black text-ink md:mt-3 md:text-5xl">{scene.label}</h2>
-        <p className="mt-2 text-sm font-bold leading-6 text-white/85 md:mt-4 md:text-lg md:leading-8">{scene.narration[textIndex]}</p>
+        <h2 className="mt-1 text-xl font-black text-ink sm:mt-2 sm:text-2xl md:mt-3 md:text-5xl">{scene.label}</h2>
+        <p className="mt-1 line-clamp-2 text-xs font-bold leading-5 text-white/85 sm:mt-2 sm:text-sm sm:leading-6 md:mt-4 md:text-lg md:leading-8">{scene.narration[textIndex]}</p>
       </div>
 
       {sceneIndex === 0 && (
-        <div className="max-w-md rounded-2xl border border-red/40 bg-red/15 p-4 shadow-2xl backdrop-blur">
+        <div className="hidden max-w-md rounded-2xl border border-red/40 bg-red/15 p-4 shadow-2xl backdrop-blur sm:block">
           <p className="text-xs font-bold uppercase tracking-wide text-red">병목 감지</p>
           <div className="mt-3 grid grid-cols-2 gap-3">
             <DemoMetric label="채혈실 대기" value={`${Math.round(lerp(18, 42, smooth(progress)))}명`} />
@@ -497,7 +497,7 @@ function ScenePanel({ sceneIndex, progress, metrics }: { sceneIndex: number; pro
       )}
 
       {sceneIndex === 1 && (
-        <div className="max-w-lg rounded-2xl border border-cyan/40 bg-bg/80 p-4 shadow-2xl backdrop-blur">
+        <div className="hidden max-w-lg rounded-2xl border border-cyan/40 bg-bg/80 p-4 shadow-2xl backdrop-blur sm:block">
           <p className="text-xs font-bold uppercase tracking-wide text-cyan">직원 관제 센터</p>
           <div className="mt-3 grid gap-2">
             <DemoMetric label="현재 대기" value="42명" />
@@ -512,7 +512,7 @@ function ScenePanel({ sceneIndex, progress, metrics }: { sceneIndex: number; pro
       )}
 
       {sceneIndex === 2 && (
-        <div className="max-w-xl rounded-2xl border border-cyan/40 bg-bg/80 p-4 shadow-2xl backdrop-blur">
+        <div className="hidden max-w-xl rounded-2xl border border-cyan/40 bg-bg/80 p-4 shadow-2xl backdrop-blur sm:block">
           <p className="text-xs font-bold uppercase tracking-wide text-cyan">AI 동선 평가</p>
           <div className="mt-4 grid gap-3 md:grid-cols-2">
             <RouteCard tone="text-red" title="기존 순서" body={cinematicOriginalRoute} time="예상 완료 11:52" />
@@ -522,7 +522,7 @@ function ScenePanel({ sceneIndex, progress, metrics }: { sceneIndex: number; pro
       )}
 
       {sceneIndex === 3 && (
-        <div className="ml-auto w-full max-w-sm rounded-[28px] border border-cyan/40 bg-[#07111f]/95 p-4 shadow-2xl backdrop-blur">
+        <div className="ml-auto hidden w-full max-w-sm rounded-[28px] border border-cyan/40 bg-[#07111f]/95 p-4 shadow-2xl backdrop-blur sm:block">
           <p className="text-xs font-bold uppercase tracking-wide text-cyan">환자 모바일 안내</p>
           <h3 className="mt-3 text-2xl font-black text-ink">P-023</h3>
           <div className="mt-4 grid gap-2">
@@ -536,7 +536,7 @@ function ScenePanel({ sceneIndex, progress, metrics }: { sceneIndex: number; pro
       )}
 
       {sceneIndex === 4 && (
-        <div className="max-w-md rounded-2xl border border-cyan/40 bg-bg/80 p-4 shadow-2xl backdrop-blur">
+        <div className="hidden max-w-md rounded-2xl border border-cyan/40 bg-bg/80 p-4 shadow-2xl backdrop-blur sm:block">
           <p className="text-xs font-bold uppercase tracking-wide text-cyan">실시간 이동 안내</p>
           <div className="mt-3 grid gap-2">
             <DemoMetric label="상태" value={progress < 0.72 ? "이동 중" : progress < 0.9 ? "도착" : "대기 중"} />
@@ -546,7 +546,7 @@ function ScenePanel({ sceneIndex, progress, metrics }: { sceneIndex: number; pro
       )}
 
       {sceneIndex === 5 && (
-        <div className="max-w-lg rounded-2xl border border-green/40 bg-green/10 p-4 shadow-2xl backdrop-blur">
+        <div className="hidden max-w-lg rounded-2xl border border-green/40 bg-green/10 p-4 shadow-2xl backdrop-blur sm:block">
           <p className="text-xs font-bold uppercase tracking-wide text-green">운영 개선 효과</p>
           <div className="mt-3 grid grid-cols-3 gap-3">
             <DemoMetric label="AI 적용 전" value="98분" />
@@ -556,21 +556,33 @@ function ScenePanel({ sceneIndex, progress, metrics }: { sceneIndex: number; pro
         </div>
       )}
 
+      {!isFinal && (
+        <div className="mx-auto w-full max-w-[330px] rounded-2xl border border-cyan/30 bg-bg/70 px-3 py-2 shadow-2xl backdrop-blur sm:hidden">
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-[11px] font-black text-cyan">{scene.label}</span>
+            <span className="shrink-0 text-[11px] font-bold text-muted">{sceneIndex + 1}/{scenes.length}</span>
+          </div>
+          <p className="mt-1 line-clamp-1 text-xs font-bold text-ink">{scene.narration[textIndex]}</p>
+        </div>
+      )}
+
       {isFinal && (
-        <div className="mx-auto mb-10 w-full max-w-5xl rounded-3xl border border-cyan/40 bg-bg/85 p-6 text-center shadow-2xl backdrop-blur">
+        <div className="mx-auto mb-1 w-full max-w-[340px] rounded-3xl border border-cyan/40 bg-bg/85 p-4 text-center shadow-2xl backdrop-blur sm:mb-10 sm:max-w-5xl sm:p-6">
           <p className="text-xs font-black uppercase tracking-[0.45em] text-cyan">SMART HOSPITAL AI</p>
-          <h2 className="mt-3 text-3xl font-black leading-tight text-ink md:text-5xl">환자 체류시간을 줄이고 검사실 혼잡을 완화하는 병원 운영 AI</h2>
-          <p className="mx-auto mt-4 max-w-3xl text-sm font-bold leading-6 text-muted">
+          <h2 className="mt-2 text-xl font-black leading-tight text-ink sm:mt-3 sm:text-3xl md:text-5xl">환자 체류시간을 줄이고 검사실 혼잡을 완화하는 병원 운영 AI</h2>
+          <p className="mx-auto mt-4 hidden max-w-3xl text-sm font-bold leading-6 text-muted sm:block">
             디지털 트윈 기반 시뮬레이션으로 병목을 감지하고, 환자별 검사 순서를 재계산해 직원과 환자에게 동시에 실행 가능한 안내를 제공합니다.
           </p>
-          <div className="mt-6 grid gap-3 md:grid-cols-5">
+          <div className="mt-4 grid grid-cols-2 gap-2 sm:mt-6 sm:gap-3 md:grid-cols-5">
             <DemoMetric label="평균 대기 감소" value={<Counter value={metrics.waitingReductionRate} suffix="%" />} />
             <DemoMetric label="평균 체류 감소" value={<Counter value={metrics.reductionRate} suffix="%" />} />
             <DemoMetric label="혼잡도 완화" value={<Counter value={28.6} suffix="%" />} />
             <DemoMetric label="민원 감소 예측" value={<Counter value={metrics.complaintReduction} suffix="%" />} />
-            <DemoMetric label="접근성 지원" value="고령자/휠체어" />
+            <div className="col-span-2 md:col-span-1">
+              <DemoMetric label="접근성 지원" value="고령자/휠체어" />
+            </div>
           </div>
-          <div className="mx-auto mt-6 grid h-16 w-16 place-items-center rounded-2xl border border-cyan/40 bg-cyan/10 text-xl font-black text-cyan">H</div>
+          <div className="mx-auto mt-4 hidden h-16 w-16 place-items-center rounded-2xl border border-cyan/40 bg-cyan/10 text-xl font-black text-cyan sm:grid">H</div>
         </div>
       )}
     </div>
@@ -579,9 +591,9 @@ function ScenePanel({ sceneIndex, progress, metrics }: { sceneIndex: number; pro
 
 function DemoMetric({ label, value }: { label: string; value: ReactNode }) {
   return (
-    <div className="rounded-xl border border-line bg-panel2/90 p-3">
-      <p className="text-xs font-bold text-muted">{label}</p>
-      <p className="mt-1 text-lg font-black text-ink">{value}</p>
+    <div className="rounded-xl border border-line bg-panel2/90 p-2 sm:p-3">
+      <p className="text-[10px] font-bold text-muted sm:text-xs">{label}</p>
+      <p className="mt-1 text-sm font-black text-ink sm:text-lg">{value}</p>
     </div>
   );
 }

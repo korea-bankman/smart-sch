@@ -1,4 +1,5 @@
 import { ArrowRight, CalendarClock, CheckCircle2, Clock3, Footprints, MapPinned, Navigation, ShieldCheck, Share2, Stethoscope, TimerReset } from "lucide-react";
+import { useState } from "react";
 import type { Patient, Room } from "../types";
 import { examLabels, examToRoom } from "../data/hospital";
 import { getPatientRouteInsight } from "../lib/patientInsights";
@@ -11,6 +12,10 @@ type Props = {
 };
 
 export function PatientCompanionPanel({ patient, rooms, onOpenDetail }: Props) {
+  const [journeyStatus, setJourneyStatus] = useState<"ready" | "walking" | "arrived" | "complete">("ready");
+  const [notice, setNotice] = useState("AI 추천 경로가 준비되었습니다.");
+  const [shared, setShared] = useState(false);
+
   if (!patient) {
     return (
       <section className="glass rounded-xl p-5">
@@ -28,11 +33,42 @@ export function PatientCompanionPanel({ patient, rooms, onOpenDetail }: Props) {
   const elevatorWait = patient.mode === "wheelchair" ? 7 + elevatorQueue * 0.8 : patient.mode === "elderly" ? 4 + elevatorQueue * 0.45 : 2 + elevatorQueue * 0.25;
   const arrivalMinutes = Math.max(3, Math.round(insight.displayAfterWalking / Math.max(1, patient.aiOrder.length)));
   const expectedArrival = `약 ${arrivalMinutes}분 후`;
+  const statusMeta =
+    journeyStatus === "complete"
+      ? { label: "검사 완료", tone: "border-green/40 bg-green/10 text-green", progress: 100 }
+      : journeyStatus === "arrived"
+        ? { label: "도착 확인", tone: "border-green/40 bg-green/10 text-green", progress: 72 }
+        : journeyStatus === "walking"
+          ? { label: "이동 중", tone: "border-cyan/40 bg-cyan/10 text-cyan", progress: 48 }
+          : { label: "안내 준비", tone: "border-yellow/40 bg-yellow/10 text-yellow", progress: 24 };
+
+  function startNavigation() {
+    setJourneyStatus("walking");
+    setNotice(`${nextRoom?.name ?? examLabels[firstExam]}까지 길찾기를 시작했습니다. 예상 도착은 ${expectedArrival}입니다.`);
+  }
+
+  function confirmArrival() {
+    setJourneyStatus("arrived");
+    setNotice(`${nextRoom?.name ?? examLabels[firstExam]} 도착이 확인되었습니다. 대기 등록 상태로 전환되었습니다.`);
+  }
+
+  function completeExam() {
+    setJourneyStatus("complete");
+    setNotice(`${examLabels[firstExam]} 검사가 완료되었습니다. 다음 검사 순서를 확인해 주세요.`);
+  }
+
+  function shareGuardian() {
+    setShared(true);
+    setNotice(`보호자에게 현재 위치와 다음 검사 안내를 공유했습니다.`);
+  }
 
   return (
     <section className="glass overflow-hidden rounded-xl">
       <div className="border-b border-line bg-cyan/10 p-4">
-        <p className="text-xs font-bold uppercase tracking-wide text-cyan">Patient Mobile Guide Preview</p>
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-xs font-bold uppercase tracking-wide text-cyan">Patient Mobile Guide Preview</p>
+          <span className={`shrink-0 rounded-md border px-2 py-1 text-[11px] font-bold ${statusMeta.tone}`}>{statusMeta.label}</span>
+        </div>
         <h2 className="mt-2 text-xl font-bold text-ink">
           {patient.name}님, 다음 검사는 {examLabels[firstExam]}입니다
         </h2>
@@ -42,6 +78,19 @@ export function PatientCompanionPanel({ patient, rooms, onOpenDetail }: Props) {
       </div>
 
       <div className="grid gap-3 p-4">
+        <div className="rounded-xl border border-line bg-panel2 p-3">
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-xs font-bold text-muted">환자 안내 상태</p>
+            <span className="text-xs font-black text-cyan">{statusMeta.progress}%</span>
+          </div>
+          <div className="mt-2 h-2 overflow-hidden rounded-full bg-bg">
+            <div className="h-full rounded-full bg-cyan transition-[width]" style={{ width: `${statusMeta.progress}%` }} />
+          </div>
+          <p className="mt-3 rounded-lg border border-cyan/25 bg-cyan/10 px-3 py-2 text-xs font-semibold leading-5 text-muted">
+            {notice}
+          </p>
+        </div>
+
         <div className="rounded-xl border border-cyan/40 bg-cyan/10 p-4">
           <div className="flex items-center justify-between gap-3">
             <div>
@@ -122,10 +171,10 @@ export function PatientCompanionPanel({ patient, rooms, onOpenDetail }: Props) {
           왜 이 순서인지 보기
         </button>
         <div className="grid grid-cols-2 gap-2">
-          <PatientAction icon={Navigation} label="길찾기 시작" tone="border-cyan/40 bg-cyan/10 text-cyan" />
-          <PatientAction icon={CheckCircle2} label="도착 확인" tone="border-green/40 bg-green/10 text-green" />
-          <PatientAction icon={Stethoscope} label="검사 완료" tone="border-line bg-panel2 text-muted" />
-          <PatientAction icon={Share2} label="보호자 공유" tone="border-line bg-panel2 text-muted" />
+          <PatientAction icon={Navigation} label="길찾기 시작" tone="border-cyan/40 bg-cyan/10 text-cyan" active={journeyStatus === "walking"} onClick={startNavigation} />
+          <PatientAction icon={CheckCircle2} label="도착 확인" tone="border-green/40 bg-green/10 text-green" active={journeyStatus === "arrived"} onClick={confirmArrival} />
+          <PatientAction icon={Stethoscope} label="검사 완료" tone="border-line bg-panel2 text-muted" active={journeyStatus === "complete"} onClick={completeExam} />
+          <PatientAction icon={Share2} label="보호자 공유" tone="border-line bg-panel2 text-muted" active={shared} onClick={shareGuardian} />
         </div>
       </div>
     </section>
@@ -142,9 +191,15 @@ function PatientMetric({ icon: Icon, label, value }: { icon: typeof Clock3; labe
   );
 }
 
-function PatientAction({ icon: Icon, label, tone }: { icon: typeof Navigation; label: string; tone: string }) {
+function PatientAction({ icon: Icon, label, tone, active, onClick }: { icon: typeof Navigation; label: string; tone: string; active: boolean; onClick: () => void }) {
   return (
-    <button type="button" className={`inline-flex h-10 items-center justify-center gap-2 rounded-lg border text-sm font-bold ${tone}`}>
+    <button
+      type="button"
+      onClick={onClick}
+      className={`inline-flex h-10 items-center justify-center gap-2 rounded-lg border text-sm font-bold transition hover:border-white/50 ${tone} ${
+        active ? "ring-2 ring-cyan/30" : ""
+      }`}
+    >
       <Icon className="h-4 w-4" />
       {label}
     </button>

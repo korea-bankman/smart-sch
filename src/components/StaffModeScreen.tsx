@@ -16,6 +16,7 @@ type Props = {
   aiEnabled: boolean;
   running: boolean;
   onAi: () => void;
+  onEnsureAi: () => void;
   onEmergency: () => void;
   onRandomQueue: () => void;
   onReset: () => void;
@@ -61,13 +62,63 @@ export function StaffModeScreen(props: Props) {
         <StaffStat label="절감 효과" value={minutes(averageSaved)} sub="환자 1명당 평균" icon={TrendingDown} tone="text-green" />
       </section>
 
-      <section className="grid min-w-0 gap-3 xl:grid-cols-[0.85fr_1.1fr_0.85fr]">
-        <div className="dashboard-scroll min-w-0 xl:h-[720px] xl:overflow-y-auto xl:pr-1">
-          <QueuePanel rooms={props.rooms} />
+      <section className="grid min-w-0 gap-3 xl:grid-cols-[330px_minmax(0,1fr)_380px]">
+        <div className="grid min-w-0 content-start gap-3 xl:h-[740px] xl:grid-rows-[auto_minmax(0,1fr)] xl:overflow-hidden">
+          <OperationsPanel metrics={props.metrics} />
+          <div className="dashboard-scroll min-w-0 xl:min-h-0 xl:flex-1 xl:overflow-y-auto xl:pr-1">
+            <QueuePanel rooms={props.rooms} />
+          </div>
         </div>
 
-        <div className="grid min-w-0 gap-3">
-          <OperationsPanel metrics={props.metrics} />
+        <div className="grid min-w-0 content-start gap-3">
+          <section className="glass overflow-hidden rounded-xl p-3">
+            <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-wide text-cyan">Staff Command View</p>
+                <h2 className="text-lg font-black text-ink">실시간 병원 흐름 관제</h2>
+              </div>
+              <div className="flex flex-wrap gap-2 text-[11px] font-bold">
+                <span className={`rounded-md border px-2 py-1 ${props.running ? "border-green/40 bg-green/10 text-green" : "border-line bg-panel2 text-muted"}`}>
+                  {props.running ? "시뮬레이션 실행 중" : "시뮬레이션 정지"}
+                </span>
+                <span className={`rounded-md border px-2 py-1 ${props.aiEnabled ? "border-cyan/40 bg-cyan/10 text-cyan" : "border-line bg-panel2 text-muted"}`}>
+                  {props.aiEnabled ? "AI 적용 중" : "AI 미적용"}
+                </span>
+              </div>
+            </div>
+            <DigitalTwin
+              rooms={props.rooms}
+              patients={props.patients}
+              selectedPatient={props.selectedPatient}
+              aiEnabled={props.aiEnabled}
+              running={props.running}
+              variant="compact"
+            />
+          </section>
+
+          <section className="glass rounded-xl p-4">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-wide text-cyan">Operator Actions</p>
+                <h2 className="text-sm font-bold text-ink">직원 즉시 조치</h2>
+              </div>
+              <span className="rounded-md border border-cyan/30 bg-cyan/10 px-2 py-1 text-[11px] font-bold text-cyan">
+                최근 조치 기록
+              </span>
+            </div>
+            <div className="mt-3 grid gap-2 md:grid-cols-3">
+              <ActionButton icon={Siren} label="응급환자 등록" tone="border-red/40 bg-red/10 text-red" onClick={() => runAction("응급환자 유입 상황을 등록하고 영상의학센터 대기열을 갱신했습니다.", props.onEmergency)} />
+              <ActionButton icon={Shuffle} label="대기열 갱신" tone="border-yellow/40 bg-yellow/10 text-yellow" onClick={() => runAction("검사실별 대기열이 최신 시뮬레이션 값으로 갱신되었습니다.", props.onRandomQueue)} />
+              <ActionButton icon={TrendingDown} label={props.aiEnabled ? "AI 적용 중" : "AI 적용"} tone="border-cyan/40 bg-cyan/10 text-cyan" onClick={() => runAction(props.aiEnabled ? "AI 최적화 적용을 해제했습니다." : "AI 최적화를 적용했습니다.", props.onAi)} />
+            </div>
+            <div className="mt-3 rounded-lg border border-cyan/30 bg-cyan/10 p-3">
+              <p className="text-xs font-bold text-cyan">최근 조치</p>
+              <p className="mt-1 text-xs font-semibold leading-5 text-muted">{notice}</p>
+            </div>
+          </section>
+        </div>
+
+        <div className="grid min-w-0 content-start gap-3 xl:h-[740px] xl:overflow-y-auto xl:pr-1">
           {patient && (
             <section className="glass rounded-xl p-4">
               <div className="flex items-center justify-between">
@@ -147,7 +198,7 @@ export function StaffModeScreen(props: Props) {
                   icon={CheckCircle2}
                   label="AI 추천 승인"
                   tone="border-green/40 bg-green/10 text-green"
-                  onClick={() => runAction(`P-${String(patient.id).padStart(3, "0")} AI 추천 경로를 승인했습니다.`, props.onAi)}
+                  onClick={() => runAction(`P-${String(patient.id).padStart(3, "0")} AI 추천 경로를 승인했습니다.`, props.onEnsureAi)}
                 />
                 <ActionButton
                   icon={Send}
@@ -170,29 +221,6 @@ export function StaffModeScreen(props: Props) {
               </div>
             </section>
           )}
-        </div>
-
-        <div className="grid min-w-0 gap-3">
-          <DigitalTwin
-            rooms={props.rooms}
-            patients={props.patients}
-            selectedPatient={props.selectedPatient}
-            aiEnabled={props.aiEnabled}
-            running={props.running}
-            variant="compact"
-          />
-          <section className="glass rounded-xl p-4">
-            <h2 className="text-sm font-bold text-ink">직원 조치</h2>
-            <div className="mt-3 grid gap-2">
-              <ActionButton icon={Siren} label="응급환자 등록" tone="border-red/40 bg-red/10 text-red" onClick={() => runAction("응급환자 유입 상황을 등록하고 영상의학센터 대기열을 갱신했습니다.", props.onEmergency)} />
-              <ActionButton icon={Shuffle} label="대기열 갱신" tone="border-yellow/40 bg-yellow/10 text-yellow" onClick={() => runAction("검사실별 대기열이 최신 시뮬레이션 값으로 갱신되었습니다.", props.onRandomQueue)} />
-              <ActionButton icon={TrendingDown} label={props.aiEnabled ? "AI 적용 중" : "AI 적용"} tone="border-cyan/40 bg-cyan/10 text-cyan" onClick={() => runAction(props.aiEnabled ? "AI 최적화 적용을 해제했습니다." : "AI 최적화를 적용했습니다.", props.onAi)} />
-            </div>
-            <div className="mt-3 rounded-lg border border-cyan/30 bg-cyan/10 p-3">
-              <p className="text-xs font-bold text-cyan">최근 조치</p>
-              <p className="mt-1 text-xs font-semibold leading-5 text-muted">{notice}</p>
-            </div>
-          </section>
         </div>
       </section>
     </div>
