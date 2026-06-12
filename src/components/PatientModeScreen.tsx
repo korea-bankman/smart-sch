@@ -1,10 +1,12 @@
-import { Bell, CheckCircle2, ChevronRight, Headphones, Share2 } from "lucide-react";
+import { useState } from "react";
+import { Bell, CheckCircle2, ChevronRight, Headphones, Map, Share2, Stethoscope } from "lucide-react";
 import type { Patient, Room } from "../types";
 import { PatientCompanionPanel } from "./PatientCompanionPanel";
 import { DigitalTwin } from "./DigitalTwin";
 import { examLabels } from "../data/hospital";
 import { getPatientRouteInsight } from "../lib/patientInsights";
 import { minutes } from "../lib/ui";
+import { FullHospitalMap } from "./FullHospitalMap";
 
 type Props = {
   patient: Patient | undefined;
@@ -16,6 +18,8 @@ type Props = {
 };
 
 export function PatientModeScreen({ patient, rooms, patients, aiEnabled, running, onOpenDetail }: Props) {
+  const [patientView, setPatientView] = useState<"guide" | "map">("guide");
+
   if (!patient) {
     return <section className="glass rounded-xl p-5 text-sm font-bold text-muted">환자 정보를 불러오는 중입니다.</section>;
   }
@@ -50,6 +54,35 @@ export function PatientModeScreen({ patient, rooms, patients, aiEnabled, running
       </div>
 
       <div className="grid min-w-0 gap-4">
+        <div className="glass rounded-xl p-2">
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => setPatientView("guide")}
+              className={`flex items-center justify-center gap-2 rounded-lg border px-3 py-2 text-sm font-bold transition ${
+                patientView === "guide" ? "border-cyan bg-cyan/15 text-cyan" : "border-line bg-panel2 text-muted hover:border-cyan/50 hover:text-ink"
+              }`}
+            >
+              <Stethoscope className="h-4 w-4" />
+              검사 안내
+            </button>
+            <button
+              type="button"
+              onClick={() => setPatientView("map")}
+              className={`flex items-center justify-center gap-2 rounded-lg border px-3 py-2 text-sm font-bold transition ${
+                patientView === "map" ? "border-cyan bg-cyan/15 text-cyan" : "border-line bg-panel2 text-muted hover:border-cyan/50 hover:text-ink"
+              }`}
+            >
+              <Map className="h-4 w-4" />
+              전체 병원 지도
+            </button>
+          </div>
+        </div>
+
+        {patientView === "map" ? (
+          <FullHospitalMap rooms={rooms} nextExam={nextExam} mode={patient.mode} />
+        ) : (
+          <>
         <section className="glass rounded-xl p-4">
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-bold text-ink">환자 여정 상태</h2>
@@ -84,6 +117,8 @@ export function PatientModeScreen({ patient, rooms, patients, aiEnabled, running
           </div>
           <DigitalTwin rooms={rooms} patients={patients} selectedPatient={patient} aiEnabled={aiEnabled} running={running} variant="compact" />
         </section>
+          </>
+        )}
       </div>
     </section>
   );
