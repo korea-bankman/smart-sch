@@ -36,7 +36,7 @@ export function RoleSwitch({ value, onChange }: Props) {
             type="button"
             onClick={() => onChange(mode.id)}
             className={`inline-flex h-10 flex-1 items-center justify-center gap-2 rounded-lg px-3 text-sm font-bold transition xl:flex-none ${
-              active ? "bg-cyan/15 text-cyan shadow-[0_0_0_1px_rgba(40,211,255,0.25)]" : "text-muted hover:text-ink"
+              active ? "bg-cyan/15 text-cyan shadow-[0_0_0_1px_rgba(47,103,178,0.25)]" : "text-muted hover:text-ink"
             }`}
           >
             <Icon className="h-4 w-4" />

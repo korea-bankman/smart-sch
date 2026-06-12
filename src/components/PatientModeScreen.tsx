@@ -32,7 +32,7 @@ export function PatientModeScreen({ patient, rooms, patients, aiEnabled, running
 
   return (
     <section className="grid gap-4 xl:grid-cols-[minmax(360px,440px)_minmax(0,1fr)] xl:items-start">
-      <div className="mx-auto w-full max-w-[430px] rounded-[28px] border border-line bg-[#050912] p-3 shadow-2xl">
+      <div className="mx-auto w-full max-w-[430px] rounded-[28px] border border-line bg-[#061225] p-3 shadow-2xl">
         <div className="overflow-hidden rounded-[22px] border border-line bg-bg">
           <div className="border-b border-line bg-cyan/10 p-4">
             <p className="text-xs font-bold uppercase tracking-wide text-cyan">Smart SCH Patient</p>

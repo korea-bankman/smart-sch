@@ -12,9 +12,9 @@ export function ComparisonCharts({ metrics }: Props) {
     { name: "체류시간", Before: metrics.beforeStay, After: metrics.averageStay }
   ];
   const effect = [
-    { name: "혼잡도 분산 Before", value: metrics.queueVarianceBefore, color: "#ff5b5b" },
-    { name: "혼잡도 분산 After", value: metrics.queueVarianceAfter, color: "#35d07f" },
-    { name: "예상 민원 감소율", value: metrics.complaintReduction, color: "#28d3ff" }
+    { name: "혼잡도 분산 Before", value: metrics.queueVarianceBefore, color: "#ef6363" },
+    { name: "혼잡도 분산 After", value: metrics.queueVarianceAfter, color: "#31c995" },
+    { name: "예상 민원 감소율", value: metrics.complaintReduction, color: "#2f67b2" }
   ];
 
   return (
@@ -24,12 +24,12 @@ export function ComparisonCharts({ metrics }: Props) {
         <div className="mt-4 h-64">
           <ResponsiveContainer>
             <BarChart data={beforeAfter} margin={{ top: 10, right: 8, left: -18, bottom: 0 }}>
-              <CartesianGrid stroke="#243247" strokeDasharray="3 3" />
-              <XAxis dataKey="name" tick={{ fill: "#8fa2ba", fontSize: 12 }} />
-              <YAxis tick={{ fill: "#8fa2ba", fontSize: 12 }} />
-              <Tooltip contentStyle={{ background: "#0d1421", border: "1px solid #243247", color: "#e7eef8" }} />
-              <Bar dataKey="Before" fill="#ff5b5b" radius={[5, 5, 0, 0]} />
-              <Bar dataKey="After" fill="#35d07f" radius={[5, 5, 0, 0]} />
+              <CartesianGrid stroke="#274569" strokeDasharray="3 3" />
+              <XAxis dataKey="name" tick={{ fill: "#9bb1cf", fontSize: 12 }} />
+              <YAxis tick={{ fill: "#9bb1cf", fontSize: 12 }} />
+              <Tooltip contentStyle={{ background: "#0b1b34", border: "1px solid #274569", color: "#f2f7ff" }} />
+              <Bar dataKey="Before" fill="#ef6363" radius={[5, 5, 0, 0]} />
+              <Bar dataKey="After" fill="#31c995" radius={[5, 5, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -39,10 +39,10 @@ export function ComparisonCharts({ metrics }: Props) {
         <div className="mt-4 h-64">
           <ResponsiveContainer>
             <BarChart data={effect} layout="vertical" margin={{ top: 10, right: 12, left: 22, bottom: 0 }}>
-              <CartesianGrid stroke="#243247" strokeDasharray="3 3" />
-              <XAxis type="number" tick={{ fill: "#8fa2ba", fontSize: 12 }} />
-              <YAxis type="category" dataKey="name" tick={{ fill: "#8fa2ba", fontSize: 12 }} width={120} />
-              <Tooltip contentStyle={{ background: "#0d1421", border: "1px solid #243247", color: "#e7eef8" }} />
+              <CartesianGrid stroke="#274569" strokeDasharray="3 3" />
+              <XAxis type="number" tick={{ fill: "#9bb1cf", fontSize: 12 }} />
+              <YAxis type="category" dataKey="name" tick={{ fill: "#9bb1cf", fontSize: 12 }} width={120} />
+              <Tooltip contentStyle={{ background: "#0b1b34", border: "1px solid #274569", color: "#f2f7ff" }} />
               <Bar dataKey="value" radius={[0, 5, 5, 0]}>
                 {effect.map((entry) => <Cell key={entry.name} fill={entry.color} />)}
               </Bar>

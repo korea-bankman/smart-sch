@@ -135,11 +135,20 @@ export function FullHospitalMap({ rooms, nextExam, mode }: Props) {
             환자용 화면에서는 전체 병원 구조를 모식도로 제공하고, AI가 추천한 다음 검사 위치를 층별 안내판 위에 바로 강조합니다.
           </p>
         </div>
-        <div className="flex shrink-0 flex-wrap gap-2 rounded-xl border border-line bg-panel2 p-2 text-[11px] font-bold">
-          <Legend label="여유" className="bg-green" />
-          <Legend label="보통" className="bg-yellow" />
-          <Legend label="혼잡" className="bg-red" />
-          <Legend label="이동" className="bg-cyan" />
+        <div className="flex shrink-0 flex-wrap items-center gap-3">
+          <div className="hidden items-center gap-2 rounded-xl border border-line bg-white/95 px-3 py-2 shadow-lg shadow-black/20 md:flex">
+            <img src="/brand/sch-cheonan-seal-transparent.png" alt="" aria-hidden="true" className="h-9 w-9 object-contain" />
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-wide text-[#2f67b2]">SCH Cheonan</p>
+              <p className="text-[10px] font-bold text-[#43658f]">Patient Wayfinding</p>
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-2 rounded-xl border border-line bg-panel2 p-2 text-[11px] font-bold">
+            <Legend label="여유" className="bg-green" />
+            <Legend label="보통" className="bg-yellow" />
+            <Legend label="혼잡" className="bg-red" />
+            <Legend label="이동" className="bg-cyan" />
+          </div>
         </div>
       </div>
 
@@ -233,7 +242,7 @@ export function FullHospitalMap({ rooms, nextExam, mode }: Props) {
           </div>
         </aside>
 
-        <article className="order-1 min-w-0 overflow-hidden rounded-2xl border border-line bg-[#07101d] p-3 shadow-2xl 2xl:order-2">
+        <article className="order-1 min-w-0 overflow-hidden rounded-2xl border border-line bg-[#08162b] p-3 shadow-2xl 2xl:order-2">
           <div className="flex flex-col gap-2 border-b border-line pb-3 md:flex-row md:items-center md:justify-between">
             <div>
               <p className="text-xs font-bold uppercase tracking-wide text-cyan">Hospital Wayfinding Board</p>
@@ -245,12 +254,12 @@ export function FullHospitalMap({ rooms, nextExam, mode }: Props) {
             </div>
           </div>
 
-          <div className="relative mt-3 h-[460px] overflow-hidden rounded-xl border border-line bg-[#091522] lg:h-[520px]">
+          <div className="relative mt-3 h-[460px] overflow-hidden rounded-xl border border-line bg-[#0a1d38] lg:h-[520px]">
             <div
               className="absolute inset-0 opacity-40"
               style={{
                 backgroundImage:
-                  "linear-gradient(rgba(40,211,255,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(40,211,255,0.08) 1px, transparent 1px)",
+                  "linear-gradient(rgba(47,103,178,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(47,103,178,0.08) 1px, transparent 1px)",
                 backgroundSize: "34px 34px"
               }}
             />
@@ -287,8 +296,8 @@ export function FullHospitalMap({ rooms, nextExam, mode }: Props) {
             </div>
 
             <svg className="pointer-events-none absolute inset-0 h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-              <polyline points={routePoints} fill="none" stroke="rgba(40,211,255,0.26)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" strokeDasharray="3 2" />
-              <circle cx="14" cy="78" r="1.7" fill="#28d3ff" opacity="0.9" />
+              <polyline points={routePoints} fill="none" stroke="rgba(47,103,178,0.26)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" strokeDasharray="3 2" />
+              <circle cx="14" cy="78" r="1.7" fill="#2f67b2" opacity="0.9" />
               <circle cx={selectedPoint.x} cy={selectedPoint.y} r="2.1" fill="#37d67a" opacity="0.95" />
             </svg>
 

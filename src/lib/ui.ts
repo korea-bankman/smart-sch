@@ -1,9 +1,9 @@
 import type { Room } from "../types";
 
 export function congestionColor(queue: number) {
-  if (queue >= 26) return "#ff5b5b";
-  if (queue >= 11) return "#f6c851";
-  return "#35d07f";
+  if (queue >= 26) return "#ef6363";
+  if (queue >= 11) return "#f3bd4e";
+  return "#31c995";
 }
 
 export function congestionLabel(queue: number) {
@@ -17,8 +17,8 @@ export function minutes(value: number) {
 }
 
 export function roomTone(room: Room) {
-  if (room.type === "core") return "#28d3ff";
+  if (room.type === "core") return "#2f67b2";
   if (room.type === "exam") return congestionColor(room.queue);
-  if (room.type === "entry") return "#35d07f";
-  return "#8fa2ba";
+  if (room.type === "entry") return "#31c995";
+  return "#9bb1cf";
 }

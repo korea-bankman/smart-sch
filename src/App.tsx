@@ -197,18 +197,31 @@ export default function App() {
   }
 
   return (
-    <main className="min-h-full overflow-x-hidden bg-[radial-gradient(circle_at_top_left,_rgba(40,211,255,0.18),_transparent_32%),#070b12]">
-      <header className="border-b border-line bg-bg/90 px-5 py-4 backdrop-blur">
-        <div className="mx-auto flex max-w-[1700px] flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
-          <div>
-            <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-cyan">
-              <BrainCircuit className="h-4 w-4" />
-              Smart Hospital Digital Twin Prototype
-            </p>
-            <h1 className="mt-2 text-2xl font-bold text-ink xl:text-3xl">AI 기반 병원 디지털 트윈 환자 동선 최적화 시스템</h1>
-            <p className="mt-2 text-sm font-semibold text-muted">
-              키오스크/WiFi/BLE/App 자동 체크인 이후, 검사실 대기열과 위치를 기반으로 총 체류시간이 가장 짧은 검사 순서를 추천합니다.
-            </p>
+    <main className="min-h-full overflow-x-hidden bg-[radial-gradient(circle_at_top_left,_rgba(47,103,178,0.24),_transparent_32%),radial-gradient(circle_at_bottom_right,_rgba(49,201,149,0.1),_transparent_28%),#061225]">
+      <header className="relative overflow-hidden border-b border-line bg-bg/90 px-5 py-4 backdrop-blur">
+        <img
+          src="/brand/sch-cheonan-seal-transparent.png"
+          alt=""
+          aria-hidden="true"
+          className="pointer-events-none absolute right-[320px] top-[-78px] hidden h-56 opacity-[0.07] xl:block"
+        />
+        <div className="relative z-10 mx-auto flex max-w-[1700px] flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+          <div className="flex min-w-0 flex-col gap-3 lg:flex-row lg:items-center">
+            <div className="flex h-16 w-full max-w-[360px] items-center gap-3 rounded-xl border border-line bg-white px-4 shadow-lg shadow-black/20 lg:w-[360px]">
+              <img src="/brand/sch-cheonan-logo.png" alt="순천향대학교 천안병원" className="min-w-0 flex-1 object-contain" />
+              <span className="h-10 w-px shrink-0 bg-[#d7e1ee]" />
+              <img src="/brand/sch-cheonan-seal-transparent.png" alt="" aria-hidden="true" className="h-11 w-11 shrink-0 object-contain" />
+            </div>
+            <div className="min-w-0">
+              <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-cyan">
+                <BrainCircuit className="h-4 w-4" />
+                Smart Hospital Digital Twin Prototype
+              </p>
+              <h1 className="mt-2 text-2xl font-bold text-ink xl:text-3xl">AI 기반 병원 디지털 트윈 환자 동선 최적화 시스템</h1>
+              <p className="mt-2 text-sm font-semibold text-muted">
+                키오스크/WiFi/BLE/App 자동 체크인 이후, 검사실 대기열과 위치를 기반으로 총 체류시간이 가장 짧은 검사 순서를 추천합니다.
+              </p>
+            </div>
           </div>
           <RoleSwitch value={audienceMode} onChange={handleAudienceMode} />
         </div>

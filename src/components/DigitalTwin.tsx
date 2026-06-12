@@ -59,7 +59,7 @@ function Floor({ floor }: { floor: 1 | 2 }) {
       </mesh>
       <mesh position={[0, 0.04, 0]} rotation={[-Math.PI / 2, 0, 0]}>
         <shapeGeometry args={[shape]} />
-        <meshBasicMaterial color={floor === 1 ? "#28d3ff" : "#35d07f"} transparent opacity={0.065} />
+        <meshBasicMaterial color={floor === 1 ? "#2f67b2" : "#31c995"} transparent opacity={0.065} />
       </mesh>
       <mesh position={[0, 0.025, 0]} rotation={[-Math.PI / 2, 0, 0]}>
         <planeGeometry args={[7.5, 8.8]} />
@@ -70,7 +70,7 @@ function Floor({ floor }: { floor: 1 | 2 }) {
         <shapeGeometry args={[shape]} />
         <meshStandardMaterial color="#20324c" />
       </mesh>
-      <Text position={[-3.45, 0.16, -4.15]} rotation={[-Math.PI / 2, 0, 0]} fontSize={0.32} color="#28d3ff">
+      <Text position={[-3.45, 0.16, -4.15]} rotation={[-Math.PI / 2, 0, 0]} fontSize={0.32} color="#2f67b2">
         {floor}F
       </Text>
     </group>
@@ -91,7 +91,7 @@ function FloorScanner({ floor }: { floor: 1 | 2 }) {
   return (
     <mesh ref={ref} position={[0, y, 0]} rotation={[-Math.PI / 2, 0, 0]}>
       <ringGeometry args={[2.65, 2.72, 96]} />
-      <meshBasicMaterial color={floor === 1 ? "#28d3ff" : "#35d07f"} transparent opacity={0.2} />
+      <meshBasicMaterial color={floor === 1 ? "#2f67b2" : "#31c995"} transparent opacity={0.2} />
     </mesh>
   );
 }
@@ -110,7 +110,7 @@ function RoomBox({ room }: { room: Room }) {
           <meshBasicMaterial color={color} transparent opacity={0.22} />
         </mesh>
       )}
-      <Text position={[0, 0.48, 0]} fontSize={0.13} color="#e7eef8" anchorX="center" anchorY="middle">
+      <Text position={[0, 0.48, 0]} fontSize={0.13} color="#f2f7ff" anchorX="center" anchorY="middle">
         {room.name}
       </Text>
       {room.type === "exam" && (
@@ -144,13 +144,13 @@ function CoreShaft() {
     <group position={[-2.35, 1.3, -0.35]}>
       <mesh castShadow>
         <boxGeometry args={[0.46, 2.9, 0.46]} />
-        <meshStandardMaterial color="#28d3ff" transparent opacity={0.6} emissive="#0b7fab" emissiveIntensity={0.2} />
+        <meshStandardMaterial color="#2f67b2" transparent opacity={0.6} emissive="#1d4f91" emissiveIntensity={0.2} />
       </mesh>
       <mesh ref={car} castShadow>
         <boxGeometry args={[0.58, 0.36, 0.58]} />
-        <meshStandardMaterial color="#e7eef8" emissive="#28d3ff" emissiveIntensity={0.45} transparent opacity={0.86} />
+        <meshStandardMaterial color="#f2f7ff" emissive="#2f67b2" emissiveIntensity={0.45} transparent opacity={0.86} />
       </mesh>
-      <Text position={[0, 1.75, 0]} fontSize={0.16} color="#28d3ff" anchorX="center">
+      <Text position={[0, 1.75, 0]} fontSize={0.16} color="#2f67b2" anchorX="center">
         ELEVATOR / STAIR
       </Text>
     </group>
@@ -182,7 +182,7 @@ function PatientCloud({ patients, running }: { patients: Patient[]; running: boo
     shown.forEach((patient, index) => {
       const p = pointAtRoute(patient.route, (patient.progress + visualOffset.current) % 1);
       const scale = patient.mode === "wheelchair" ? 1.35 : patient.mode === "elderly" ? 1.15 : 1;
-      color.set(patient.mode === "elderly" ? "#f6c851" : patient.mode === "wheelchair" ? "#a78bfa" : "#28d3ff");
+      color.set(patient.mode === "elderly" ? "#f3bd4e" : patient.mode === "wheelchair" ? "#a78bfa" : "#2f67b2");
 
       dummy.position.set(p.x, p.y - 0.11, p.z);
       dummy.scale.setScalar(scale);
@@ -206,11 +206,11 @@ function PatientCloud({ patients, running }: { patients: Patient[]; running: boo
     <group>
       <instancedMesh ref={bodyMesh} args={[undefined, undefined, shown.length]} castShadow>
         <capsuleGeometry args={[0.045, 0.22, 6, 10]} />
-        <meshStandardMaterial vertexColors color="#28d3ff" emissive="#28d3ff" emissiveIntensity={0.12} roughness={0.48} />
+        <meshStandardMaterial vertexColors color="#2f67b2" emissive="#2f67b2" emissiveIntensity={0.12} roughness={0.48} />
       </instancedMesh>
       <instancedMesh ref={headMesh} args={[undefined, undefined, shown.length]} castShadow>
         <sphereGeometry args={[0.07, 12, 12]} />
-        <meshStandardMaterial vertexColors color="#28d3ff" emissive="#28d3ff" emissiveIntensity={0.15} roughness={0.42} />
+        <meshStandardMaterial vertexColors color="#2f67b2" emissive="#2f67b2" emissiveIntensity={0.15} roughness={0.42} />
       </instancedMesh>
     </group>
   );
@@ -220,7 +220,7 @@ function SelectedRoute({ patient, aiEnabled }: { patient: Patient | undefined; a
   const line = useMemo(() => {
     if (!patient || patient.route.length < 2) return null;
     const geometry = new THREE.BufferGeometry().setFromPoints(patient.route.map((p) => new THREE.Vector3(p.x, p.y + 0.09, p.z)));
-    const material = new THREE.LineBasicMaterial({ color: aiEnabled ? "#35d07f" : "#ff5b5b" });
+    const material = new THREE.LineBasicMaterial({ color: aiEnabled ? "#31c995" : "#ef6363" });
     return new THREE.Line(geometry, material);
   }, [patient, aiEnabled]);
   if (!line) return null;
@@ -251,7 +251,7 @@ function CorridorGuides() {
     () =>
       guidePaths.map((path) => {
         const geometry = new THREE.BufferGeometry().setFromPoints(path.map((point) => new THREE.Vector3(point.x, point.y + 0.07, point.z)));
-        const material = new THREE.LineBasicMaterial({ color: "#28d3ff", transparent: true, opacity: 0.32 });
+        const material = new THREE.LineBasicMaterial({ color: "#2f67b2", transparent: true, opacity: 0.32 });
         return new THREE.Line(geometry, material);
       }),
     []
@@ -262,10 +262,10 @@ function CorridorGuides() {
       {lines.map((line, index) => (
         <primitive key={index} object={line} />
       ))}
-      <Text position={[-2.2, 0.12, 0.45]} rotation={[-Math.PI / 2, 0, 0]} fontSize={0.12} color="#28d3ff">
+      <Text position={[-2.2, 0.12, 0.45]} rotation={[-Math.PI / 2, 0, 0]} fontSize={0.12} color="#2f67b2">
         MAIN CORRIDOR
       </Text>
-      <Text position={[-1.3, 2.72, -2.55]} rotation={[-Math.PI / 2, 0, 0]} fontSize={0.12} color="#35d07f">
+      <Text position={[-1.3, 2.72, -2.55]} rotation={[-Math.PI / 2, 0, 0]} fontSize={0.12} color="#31c995">
         EXAM CORRIDOR
       </Text>
     </>
@@ -290,15 +290,15 @@ function SelectedPatientHalo({ patient, running }: { patient: Patient | undefine
     <group ref={group}>
       <mesh position={[0, -0.12, 0]} castShadow>
         <capsuleGeometry args={[0.09, 0.36, 8, 16]} />
-        <meshStandardMaterial color="#28d3ff" emissive="#28d3ff" emissiveIntensity={0.75} />
+        <meshStandardMaterial color="#2f67b2" emissive="#2f67b2" emissiveIntensity={0.75} />
       </mesh>
       <mesh position={[0, 0.17, 0]} castShadow>
         <sphereGeometry args={[0.13, 24, 24]} />
-        <meshStandardMaterial color="#ffffff" emissive="#28d3ff" emissiveIntensity={1.25} />
+        <meshStandardMaterial color="#ffffff" emissive="#2f67b2" emissiveIntensity={1.25} />
       </mesh>
       <mesh rotation={[-Math.PI / 2, 0, 0]}>
         <ringGeometry args={[0.24, 0.31, 40]} />
-        <meshBasicMaterial color="#28d3ff" transparent opacity={0.55} />
+        <meshBasicMaterial color="#2f67b2" transparent opacity={0.55} />
       </mesh>
       <Text position={[0, 0.45, 0]} fontSize={0.11} color="#ffffff" anchorX="center">
         SELECTED
@@ -314,7 +314,7 @@ function Scene({ rooms, patients, selectedPatient, aiEnabled, running }: Props) 
     <>
       <ambientLight intensity={0.68} />
       <directionalLight position={[6, 9, 6]} intensity={1.5} castShadow />
-      <pointLight position={[-3, 5, -2]} color="#28d3ff" intensity={4} />
+      <pointLight position={[-3, 5, -2]} color="#2f67b2" intensity={4} />
       <Floor floor={1} />
       <Floor floor={2} />
       <CorridorGuides />

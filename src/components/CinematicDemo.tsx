@@ -142,9 +142,9 @@ function getRoomQueue(room: Room, sceneIndex: number, progress: number) {
 }
 
 function queueColor(queue: number) {
-  if (queue >= 26) return "#ff5b5b";
-  if (queue >= 11) return "#f6c851";
-  return "#35d07f";
+  if (queue >= 26) return "#ef6363";
+  if (queue >= 11) return "#f3bd4e";
+  return "#31c995";
 }
 
 function FloorPlate({ floor }: { floor: 1 | 2 }) {
@@ -158,9 +158,9 @@ function FloorPlate({ floor }: { floor: 1 | 2 }) {
       </mesh>
       <mesh position={[0, 0.05, 0]} rotation={[-Math.PI / 2, 0, 0]}>
         <shapeGeometry args={[shape]} />
-        <meshBasicMaterial color={floor === 1 ? "#28d3ff" : "#35d07f"} transparent opacity={0.09} />
+        <meshBasicMaterial color={floor === 1 ? "#2f67b2" : "#31c995"} transparent opacity={0.09} />
       </mesh>
-      <Text position={[-3.35, 0.22, -4.05]} rotation={[-Math.PI / 2, 0, 0]} fontSize={0.36} color={floor === 1 ? "#28d3ff" : "#35d07f"}>
+      <Text position={[-3.35, 0.22, -4.05]} rotation={[-Math.PI / 2, 0, 0]} fontSize={0.36} color={floor === 1 ? "#2f67b2" : "#31c995"}>
         {floor}F
       </Text>
     </group>
@@ -184,7 +184,7 @@ function CinematicRoom({ room, sceneIndex, progress }: { room: Room; sceneIndex:
             <circleGeometry args={[Math.min(1.35, 0.3 + queue / 42), 64]} />
             <meshBasicMaterial color={color} transparent opacity={pulse} />
           </mesh>
-          <Text position={[0, 0.55, 0]} fontSize={0.13} color="#e7eef8" anchorX="center">
+          <Text position={[0, 0.55, 0]} fontSize={0.13} color="#f2f7ff" anchorX="center">
             {room.name}
           </Text>
           <Text position={[0, 0.36, 0]} fontSize={0.13} color={color} anchorX="center">
@@ -206,13 +206,13 @@ function ElevatorCore({ progress }: { progress: number }) {
     <group position={[-2.35, 1.3, -0.35]}>
       <mesh castShadow>
         <boxGeometry args={[0.52, 3.2, 0.52]} />
-        <meshStandardMaterial color="#28d3ff" transparent opacity={0.38} emissive="#28d3ff" emissiveIntensity={0.3} />
+        <meshStandardMaterial color="#2f67b2" transparent opacity={0.38} emissive="#2f67b2" emissiveIntensity={0.3} />
       </mesh>
       <mesh ref={car} castShadow>
         <boxGeometry args={[0.64, 0.4, 0.64]} />
-        <meshStandardMaterial color="#e7eef8" emissive="#28d3ff" emissiveIntensity={0.75} transparent opacity={0.9} />
+        <meshStandardMaterial color="#f2f7ff" emissive="#2f67b2" emissiveIntensity={0.75} transparent opacity={0.9} />
       </mesh>
-      <Text position={[0, 1.9, 0]} fontSize={0.17} color="#28d3ff" anchorX="center">
+      <Text position={[0, 1.9, 0]} fontSize={0.17} color="#2f67b2" anchorX="center">
         중앙 엘리베이터
       </Text>
     </group>
@@ -257,7 +257,7 @@ function PatientSwarm({ sceneIndex, progress }: { sceneIndex: number; progress: 
       const z = lerp(fromZ, toZ, wave) + normalZ * offset;
       const baseY = lane.floor === 1 ? 0.26 : FLOOR_HEIGHT + 0.26;
       const scale = sceneIndex === 0 ? lerp(0.68, 0.92, progress) : 0.8;
-      color.set(sceneIndex < 3 ? "#f6c851" : sceneIndex >= 5 ? "#35d07f" : "#28d3ff");
+      color.set(sceneIndex < 3 ? "#f3bd4e" : sceneIndex >= 5 ? "#31c995" : "#2f67b2");
 
       dummy.position.set(x, baseY - 0.04, z);
       dummy.scale.setScalar(scale);
@@ -283,11 +283,11 @@ function PatientSwarm({ sceneIndex, progress }: { sceneIndex: number; progress: 
     <group>
       <instancedMesh ref={bodyMesh} args={[undefined, undefined, count]} castShadow>
         <capsuleGeometry args={[0.045, 0.24, 6, 10]} />
-        <meshStandardMaterial vertexColors color="#28d3ff" emissive="#28d3ff" emissiveIntensity={0.18} roughness={0.45} />
+        <meshStandardMaterial vertexColors color="#2f67b2" emissive="#2f67b2" emissiveIntensity={0.18} roughness={0.45} />
       </instancedMesh>
       <instancedMesh ref={headMesh} args={[undefined, undefined, count]} castShadow>
         <sphereGeometry args={[0.072, 12, 12]} />
-        <meshStandardMaterial vertexColors color="#28d3ff" emissive="#28d3ff" emissiveIntensity={0.22} roughness={0.4} />
+        <meshStandardMaterial vertexColors color="#2f67b2" emissive="#2f67b2" emissiveIntensity={0.22} roughness={0.4} />
       </instancedMesh>
     </group>
   );
@@ -317,7 +317,7 @@ function RouteStory({ sceneIndex }: { sceneIndex: number }) {
       { x: 1.25, y: 0, z: 2.35 },
       { x: -2.55, y: FLOOR_HEIGHT, z: -1.05 }
     ];
-    return { original: makeLine(original, "#ff5b5b"), optimized: makeLine(optimized, "#35d07f") };
+    return { original: makeLine(original, "#ef6363"), optimized: makeLine(optimized, "#31c995") };
   }, []);
 
   if (sceneIndex < 2) return null;
@@ -357,15 +357,15 @@ function AvatarJourney({ sceneIndex, progress }: { sceneIndex: number; progress:
     <group ref={group}>
       <mesh position={[0, -0.16, 0]} castShadow>
         <capsuleGeometry args={[0.11, 0.42, 8, 18]} />
-        <meshStandardMaterial color="#28d3ff" emissive="#28d3ff" emissiveIntensity={0.65} roughness={0.35} />
+        <meshStandardMaterial color="#2f67b2" emissive="#2f67b2" emissiveIntensity={0.65} roughness={0.35} />
       </mesh>
       <mesh position={[0, 0.18, 0]} castShadow>
         <sphereGeometry args={[0.17, 24, 24]} />
-        <meshStandardMaterial color="#ffffff" emissive="#28d3ff" emissiveIntensity={1.25} />
+        <meshStandardMaterial color="#ffffff" emissive="#2f67b2" emissiveIntensity={1.25} />
       </mesh>
       <mesh rotation={[-Math.PI / 2, 0, 0]}>
         <ringGeometry args={[0.28, 0.36, 48]} />
-        <meshBasicMaterial color="#35d07f" transparent opacity={0.62} />
+        <meshBasicMaterial color="#31c995" transparent opacity={0.62} />
       </mesh>
       <Text position={[0, 0.52, 0]} fontSize={0.13} color="#ffffff" anchorX="center">
         P-023
@@ -386,7 +386,7 @@ function AIEffects({ sceneIndex, progress }: { sceneIndex: number; progress: num
   return (
     <mesh ref={ring} position={[-0.5, FLOOR_HEIGHT + 0.18, -1.2]} rotation={[-Math.PI / 2, 0, 0]}>
       <ringGeometry args={[1.25, 1.34, 96]} />
-      <meshBasicMaterial color="#28d3ff" transparent opacity={0.42} />
+      <meshBasicMaterial color="#2f67b2" transparent opacity={0.42} />
     </mesh>
   );
 }
@@ -421,8 +421,8 @@ function CinematicWorld({ rooms, sceneIndex, progress }: { rooms: Room[]; sceneI
     <>
       <ambientLight intensity={0.56} />
       <directionalLight position={[5, 8, 6]} intensity={1.45} castShadow />
-      <pointLight position={[-3, 4, -2]} color="#28d3ff" intensity={3.8} />
-      <pointLight position={[2.8, 3.4, 2.2]} color="#35d07f" intensity={sceneIndex >= 5 ? 4.2 : 1.4} />
+      <pointLight position={[-3, 4, -2]} color="#2f67b2" intensity={3.8} />
+      <pointLight position={[2.8, 3.4, 2.2]} color="#31c995" intensity={sceneIndex >= 5 ? 4.2 : 1.4} />
       <FloorPlate floor={1} />
       <FloorPlate floor={2} />
       <ElevatorCore progress={progress} />
