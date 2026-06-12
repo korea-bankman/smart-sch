@@ -1,11 +1,11 @@
 import { useState } from "react";
-import { AlertTriangle, CheckCircle2, Clock3, RotateCcw, Search, Send, Shuffle, Siren, TrendingDown, UserCheck } from "lucide-react";
+import { AlertTriangle, Bot, CheckCircle2, Clock3, RotateCcw, Search, Send, Shuffle, Siren, TrendingDown, UserCheck } from "lucide-react";
 import type { Metrics, Patient, Room } from "../types";
 import { DigitalTwin } from "./DigitalTwin";
 import { OperationsPanel } from "./OperationsPanel";
 import { QueuePanel } from "./QueuePanel";
 import { minutes } from "../lib/ui";
-import { examLabels } from "../data/hospital";
+import { examLabels, examToRoom } from "../data/hospital";
 import { getPatientRouteInsight } from "../lib/patientInsights";
 
 type Props = {
@@ -32,6 +32,9 @@ export function StaffModeScreen(props: Props) {
   const waitOver120 = props.patients.filter((item) => item.after.waiting >= 120).length;
   const averageSaved = props.patients.reduce((sum, item) => sum + Math.max(0, item.before.total - item.after.total), 0) / Math.max(1, props.patients.length);
   const congestionRank = props.rooms.filter((room) => room.type === "exam").sort((a, b) => b.queue - a.queue);
+  const bottleneckRoom = congestionRank[0];
+  const firstAiRoom = patient ? props.rooms.find((room) => room.id === examToRoom[patient.aiOrder[0]]) : undefined;
+  const deferredRoom = patient ? props.rooms.find((room) => room.id === examToRoom[patient.fixedOrder[0]]) : undefined;
   const searchResults = props.patients
     .filter((item) => {
       const normalized = query.trim().toLowerCase();
@@ -124,6 +127,21 @@ export function StaffModeScreen(props: Props) {
                   예상 절감 {minutes(patientInsight?.savedTotal ?? 0)}
                 </p>
               </div>
+              <div className="mt-3 rounded-xl border border-cyan/40 bg-cyan/10 p-4">
+                <div className="flex items-center gap-2">
+                  <Bot className="h-4 w-4 text-cyan" />
+                  <h3 className="text-sm font-bold text-ink">AI 권고 사유</h3>
+                </div>
+                <div className="mt-3 grid gap-2">
+                  <ReasonLine label="병목 검사실" value={`${bottleneckRoom?.name ?? "-"} · ${bottleneckRoom?.queue ?? 0}명 대기`} tone="text-red" />
+                  <ReasonLine label="선시행 권고" value={`${firstAiRoom?.name ?? "-"} · 대기 ${firstAiRoom?.queue ?? 0}명`} tone="text-green" />
+                  <ReasonLine label="후순위 조정" value={`${deferredRoom?.name ?? "-"} 혼잡 완화 후 방문`} tone="text-yellow" />
+                  <ReasonLine label="예상 효과" value={`대기 ${minutes(patientInsight?.savedWaiting ?? 0)} / 이동 ${minutes(patientInsight?.savedWalking ?? 0)} 절감`} tone="text-cyan" />
+                </div>
+                <p className="mt-3 rounded-lg border border-line bg-bg/70 px-3 py-2 text-xs font-semibold leading-5 text-muted">
+                  권고: 현재 병목에 바로 진입하지 않고, 대기가 짧은 검사부터 진행해 총 체류시간을 낮춥니다.
+                </p>
+              </div>
               <div className="mt-3 grid grid-cols-2 gap-2">
                 <ActionButton
                   icon={CheckCircle2}
@@ -193,6 +211,15 @@ function StaffStat({ label, value, sub, icon: Icon, tone = "text-cyan" }: { labe
         <Icon className={`h-5 w-5 shrink-0 ${tone}`} />
       </div>
     </article>
+  );
+}
+
+function ReasonLine({ label, value, tone }: { label: string; value: string; tone: string }) {
+  return (
+    <div className="flex items-center justify-between gap-3 rounded-lg border border-line bg-bg/70 px-3 py-2">
+      <span className="shrink-0 text-xs font-bold text-muted">{label}</span>
+      <span className={`min-w-0 truncate text-right text-xs font-bold ${tone}`}>{value}</span>
+    </div>
   );
 }
 

@@ -13,6 +13,7 @@ type Props = {
   rooms: Room[];
   metrics: Metrics;
   onClose: () => void;
+  onComplete?: () => void;
 };
 
 type SceneDef = {
@@ -24,46 +25,46 @@ type SceneDef = {
 
 const scenes: SceneDef[] = [
   {
-    title: "The Problem",
+    title: "문제 상황",
     label: "혼잡 발생",
     seconds: 12,
-    narration: ["Morning outpatient volume is increasing.", "Patient queues are beginning to form.", "Bottleneck detected."]
+    narration: ["오전 외래 환자가 빠르게 증가합니다.", "검사실 대기열이 형성되기 시작합니다.", "채혈실과 영상의학센터 병목이 감지되었습니다."]
   },
   {
-    title: "Staff Awareness",
+    title: "직원 인지",
     label: "직원 감지",
     seconds: 10,
-    narration: ["Blood Draw Room congestion detected.", "Estimated delay: +18 minutes.", "AI prepares a redistribution plan."]
+    narration: ["채혈실 혼잡 알림이 직원 관제 화면에 표시됩니다.", "예상 지연 시간은 18분 증가합니다.", "AI가 환자 재배치 권고안을 준비합니다."]
   },
   {
-    title: "AI Analysis",
+    title: "AI 동선 분석",
     label: "AI 분석",
     seconds: 13,
-    narration: ["AI analyzes queue status, travel distance and examination schedules.", "Alternative routes are evaluated in real time."]
+    narration: ["AI는 대기열, 이동거리, 검사시간을 동시에 분석합니다.", "대체 검사 순서를 실시간으로 비교합니다."]
   },
   {
-    title: "Patient Experience",
+    title: "환자 경험",
     label: "환자 안내",
     seconds: 10,
-    narration: ["The patient receives a clear next step.", "Navigation starts from the mobile guide."]
+    narration: ["환자는 모바일 앱에서 다음 검사와 예상 대기시간을 확인합니다.", "길찾기 버튼을 누르면 맞춤 안내가 시작됩니다."]
   },
   {
-    title: "3D Patient Journey",
+    title: "3D 환자 이동",
     label: "3D 이동",
     seconds: 14,
-    narration: ["Walk 30 meters ahead.", "Use the central elevator.", "Proceed to ECG Room.", "Arrival confirmed."]
+    narration: ["전방 30m 이동합니다.", "중앙 엘리베이터를 이용합니다.", "외래심장검사실로 이동합니다.", "도착이 확인되었습니다."]
   },
   {
-    title: "System Impact",
+    title: "운영 효과",
     label: "운영 개선",
     seconds: 12,
-    narration: ["Queues begin to decrease.", "Patients redistribute across available rooms.", "Hospital-wide stay time improves."]
+    narration: ["대기열이 완화되기 시작합니다.", "환자 흐름이 여러 검사실로 분산됩니다.", "병원 전체 평균 체류시간이 개선됩니다."]
   },
   {
-    title: "Executive Summary",
+    title: "최종 요약",
     label: "최종 요약",
     seconds: 11,
-    narration: ["SMART HOSPITAL AI", "Real-time patient flow optimization"]
+    narration: ["SMART HOSPITAL AI", "환자 체류시간을 줄이고 검사실 혼잡을 완화하는 병원 운영 AI"]
   }
 ];
 
@@ -187,7 +188,7 @@ function CinematicRoom({ room, sceneIndex, progress }: { room: Room; sceneIndex:
             {room.name}
           </Text>
           <Text position={[0, 0.36, 0]} fontSize={0.13} color={color} anchorX="center">
-            {queue} patients
+            {queue}명
           </Text>
         </>
       )}
@@ -212,7 +213,7 @@ function ElevatorCore({ progress }: { progress: number }) {
         <meshStandardMaterial color="#e7eef8" emissive="#28d3ff" emissiveIntensity={0.75} transparent opacity={0.9} />
       </mesh>
       <Text position={[0, 1.9, 0]} fontSize={0.17} color="#28d3ff" anchorX="center">
-        CENTRAL ELEVATOR
+        중앙 엘리베이터
       </Text>
     </group>
   );
@@ -472,24 +473,24 @@ function ScenePanel({ sceneIndex, progress, metrics }: { sceneIndex: number; pro
 
       {sceneIndex === 0 && (
         <div className="max-w-md rounded-2xl border border-red/40 bg-red/15 p-4 shadow-2xl backdrop-blur">
-          <p className="text-xs font-bold uppercase tracking-wide text-red">Bottleneck detected</p>
+          <p className="text-xs font-bold uppercase tracking-wide text-red">병목 감지</p>
           <div className="mt-3 grid grid-cols-2 gap-3">
-            <DemoMetric label="Blood Draw queue" value={`${Math.round(lerp(18, 42, smooth(progress)))}명`} />
-            <DemoMetric label="Imaging queue" value={`${Math.round(lerp(15, 31, smooth(progress)))}명`} />
+            <DemoMetric label="채혈실 대기" value={`${Math.round(lerp(18, 42, smooth(progress)))}명`} />
+            <DemoMetric label="영상의학센터 대기" value={`${Math.round(lerp(15, 31, smooth(progress)))}명`} />
           </div>
         </div>
       )}
 
       {sceneIndex === 1 && (
         <div className="max-w-lg rounded-2xl border border-cyan/40 bg-bg/80 p-4 shadow-2xl backdrop-blur">
-          <p className="text-xs font-bold uppercase tracking-wide text-cyan">Staff Control Center</p>
+          <p className="text-xs font-bold uppercase tracking-wide text-cyan">직원 관제 센터</p>
           <div className="mt-3 grid gap-2">
-            <DemoMetric label="Current queue" value="42명" />
-            <DemoMetric label="Expected wait" value="+18분" />
-            <DemoMetric label="Affected patients" value="128명" />
+            <DemoMetric label="현재 대기" value="42명" />
+            <DemoMetric label="예상 지연" value="+18분" />
+            <DemoMetric label="영향 환자" value="128명" />
             <div className="rounded-xl border border-green/40 bg-green/10 p-3">
-              <p className="text-sm font-bold text-green">AI suggests: Reassign 28 patients</p>
-              <p className="mt-1 text-xs font-semibold text-muted">Expected time saving: 21 minutes</p>
+              <p className="text-sm font-bold text-green">AI 권고: 28명 검사 순서 재배치</p>
+              <p className="mt-1 text-xs font-semibold text-muted">예상 절감 시간: 환자당 21분</p>
             </div>
           </div>
         </div>
@@ -497,45 +498,45 @@ function ScenePanel({ sceneIndex, progress, metrics }: { sceneIndex: number; pro
 
       {sceneIndex === 2 && (
         <div className="max-w-xl rounded-2xl border border-cyan/40 bg-bg/80 p-4 shadow-2xl backdrop-blur">
-          <p className="text-xs font-bold uppercase tracking-wide text-cyan">AI Route Evaluation</p>
+          <p className="text-xs font-bold uppercase tracking-wide text-cyan">AI 동선 평가</p>
           <div className="mt-4 grid gap-3 md:grid-cols-2">
-            <RouteCard tone="text-red" title="Original" body={cinematicOriginalRoute} time="11:52 AM" />
-            <RouteCard tone="text-green" title="Optimized" body={cinematicOptimizedRoute} time="11:31 AM" />
+            <RouteCard tone="text-red" title="기존 순서" body={cinematicOriginalRoute} time="예상 완료 11:52" />
+            <RouteCard tone="text-green" title="AI 추천 순서" body={cinematicOptimizedRoute} time="예상 완료 11:31" />
           </div>
         </div>
       )}
 
       {sceneIndex === 3 && (
         <div className="ml-auto w-full max-w-sm rounded-[28px] border border-cyan/40 bg-[#07111f]/95 p-4 shadow-2xl backdrop-blur">
-          <p className="text-xs font-bold uppercase tracking-wide text-cyan">Patient Mobile App</p>
+          <p className="text-xs font-bold uppercase tracking-wide text-cyan">환자 모바일 안내</p>
           <h3 className="mt-3 text-2xl font-black text-ink">P-023</h3>
           <div className="mt-4 grid gap-2">
-            <DemoMetric label="Next Examination" value={examLabels.ecg} />
-            <DemoMetric label="Estimated wait" value="4분" />
-            <DemoMetric label="Walking time" value="3분" />
-            <DemoMetric label="Time saved" value="21분" />
+            <DemoMetric label="다음 검사" value={examLabels.ecg} />
+            <DemoMetric label="예상 대기" value="4분" />
+            <DemoMetric label="이동 시간" value="3분" />
+            <DemoMetric label="절감 시간" value="21분" />
           </div>
-          <div className="mt-4 rounded-xl border border-green/40 bg-green/15 px-4 py-3 text-center text-sm font-black text-green">Start Navigation</div>
+          <div className="mt-4 rounded-xl border border-green/40 bg-green/15 px-4 py-3 text-center text-sm font-black text-green">길찾기 시작</div>
         </div>
       )}
 
       {sceneIndex === 4 && (
         <div className="max-w-md rounded-2xl border border-cyan/40 bg-bg/80 p-4 shadow-2xl backdrop-blur">
-          <p className="text-xs font-bold uppercase tracking-wide text-cyan">Live Guidance</p>
+          <p className="text-xs font-bold uppercase tracking-wide text-cyan">실시간 이동 안내</p>
           <div className="mt-3 grid gap-2">
-            <DemoMetric label="Status" value={progress < 0.72 ? "Walking" : progress < 0.9 ? "Arrived" : "Waiting"} />
-            <DemoMetric label="Instruction" value={progress < 0.36 ? "Walk 30 meters ahead" : progress < 0.68 ? "Use central elevator" : "Proceed to ECG Room"} />
+            <DemoMetric label="상태" value={progress < 0.72 ? "이동 중" : progress < 0.9 ? "도착" : "대기 중"} />
+            <DemoMetric label="안내" value={progress < 0.36 ? "전방 30m 이동" : progress < 0.68 ? "중앙 엘리베이터 이용" : "외래심장검사실로 이동"} />
           </div>
         </div>
       )}
 
       {sceneIndex === 5 && (
         <div className="max-w-lg rounded-2xl border border-green/40 bg-green/10 p-4 shadow-2xl backdrop-blur">
-          <p className="text-xs font-bold uppercase tracking-wide text-green">System Impact</p>
+          <p className="text-xs font-bold uppercase tracking-wide text-green">운영 개선 효과</p>
           <div className="mt-3 grid grid-cols-3 gap-3">
-            <DemoMetric label="Before AI" value="98분" />
-            <DemoMetric label="After AI" value="76분" />
-            <DemoMetric label="Reduction" value="22.4%" />
+            <DemoMetric label="AI 적용 전" value="98분" />
+            <DemoMetric label="AI 적용 후" value="76분" />
+            <DemoMetric label="감소율" value="22.4%" />
           </div>
         </div>
       )}
@@ -543,13 +544,16 @@ function ScenePanel({ sceneIndex, progress, metrics }: { sceneIndex: number; pro
       {isFinal && (
         <div className="mx-auto mb-10 w-full max-w-5xl rounded-3xl border border-cyan/40 bg-bg/85 p-6 text-center shadow-2xl backdrop-blur">
           <p className="text-xs font-black uppercase tracking-[0.45em] text-cyan">SMART HOSPITAL AI</p>
-          <h2 className="mt-3 text-4xl font-black text-ink md:text-6xl">Real-time patient flow optimization</h2>
+          <h2 className="mt-3 text-3xl font-black leading-tight text-ink md:text-5xl">환자 체류시간을 줄이고 검사실 혼잡을 완화하는 병원 운영 AI</h2>
+          <p className="mx-auto mt-4 max-w-3xl text-sm font-bold leading-6 text-muted">
+            디지털 트윈 기반 시뮬레이션으로 병목을 감지하고, 환자별 검사 순서를 재계산해 직원과 환자에게 동시에 실행 가능한 안내를 제공합니다.
+          </p>
           <div className="mt-6 grid gap-3 md:grid-cols-5">
-            <DemoMetric label="Wait reduction" value={<Counter value={metrics.waitingReductionRate} suffix="%" />} />
-            <DemoMetric label="Stay reduction" value={<Counter value={metrics.reductionRate} suffix="%" />} />
-            <DemoMetric label="Congestion reduction" value={<Counter value={28.6} suffix="%" />} />
-            <DemoMetric label="Complaint reduction" value={<Counter value={metrics.complaintReduction} suffix="%" />} />
-            <DemoMetric label="Accessibility" value="Supported" />
+            <DemoMetric label="평균 대기 감소" value={<Counter value={metrics.waitingReductionRate} suffix="%" />} />
+            <DemoMetric label="평균 체류 감소" value={<Counter value={metrics.reductionRate} suffix="%" />} />
+            <DemoMetric label="혼잡도 완화" value={<Counter value={28.6} suffix="%" />} />
+            <DemoMetric label="민원 감소 예측" value={<Counter value={metrics.complaintReduction} suffix="%" />} />
+            <DemoMetric label="접근성 지원" value="고령자/휠체어" />
           </div>
           <div className="mx-auto mt-6 grid h-16 w-16 place-items-center rounded-2xl border border-cyan/40 bg-cyan/10 text-xl font-black text-cyan">H</div>
         </div>
@@ -577,16 +581,18 @@ function RouteCard({ title, body, time, tone }: { title: string; body: string; t
   );
 }
 
-export function CinematicDemo({ open, rooms, metrics, onClose }: Props) {
+export function CinematicDemo({ open, rooms, metrics, onClose, onComplete }: Props) {
   const [elapsed, setElapsed] = useState(0);
   const [playing, setPlaying] = useState(true);
   const rafRef = useRef<number | null>(null);
   const lastRef = useRef<number>(0);
+  const completedRef = useRef(false);
 
   useEffect(() => {
     if (!open) return;
     setPlaying(true);
     setElapsed(0);
+    completedRef.current = false;
   }, [open]);
 
   useEffect(() => {
@@ -601,7 +607,13 @@ export function CinematicDemo({ open, rooms, metrics, onClose }: Props) {
       lastRef.current = time;
       setElapsed((value) => {
         const next = Math.min(totalSeconds, value + delta);
-        if (next >= totalSeconds) setPlaying(false);
+        if (next >= totalSeconds) {
+          setPlaying(false);
+          if (!completedRef.current) {
+            completedRef.current = true;
+            onComplete?.();
+          }
+        }
         return next;
       });
       rafRef.current = window.requestAnimationFrame(tick);
@@ -610,7 +622,7 @@ export function CinematicDemo({ open, rooms, metrics, onClose }: Props) {
     return () => {
       if (rafRef.current) window.cancelAnimationFrame(rafRef.current);
     };
-  }, [open, playing]);
+  }, [open, playing, onComplete]);
 
   const { index: sceneIndex, progress, sceneStart } = sceneAt(elapsed);
   const percent = (elapsed / totalSeconds) * 100;
@@ -642,10 +654,10 @@ export function CinematicDemo({ open, rooms, metrics, onClose }: Props) {
 
       {sceneIndex === 2 && (
         <div className="pointer-events-none absolute right-8 top-28 z-20 hidden max-w-md rounded-2xl border border-line bg-bg/80 p-4 shadow-2xl backdrop-blur lg:block">
-          <p className="text-xs font-bold uppercase tracking-wide text-cyan">Selected Patient P-023</p>
+          <p className="text-xs font-bold uppercase tracking-wide text-cyan">선택 환자 P-023</p>
           <div className="mt-3 grid gap-2">
-            <DemoMetric label="Original route" value={cinematicOriginalRoute} />
-            <DemoMetric label="Optimized route" value={cinematicOptimizedRoute} />
+            <DemoMetric label="기존 순서" value={cinematicOriginalRoute} />
+            <DemoMetric label="AI 추천 순서" value={cinematicOptimizedRoute} />
           </div>
         </div>
       )}
@@ -653,23 +665,23 @@ export function CinematicDemo({ open, rooms, metrics, onClose }: Props) {
       <div className="absolute left-0 right-0 top-0 z-30 border-b border-line bg-bg/65 px-4 py-3 backdrop-blur">
         <div className="mx-auto flex max-w-[1600px] flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <p className="text-xs font-black uppercase tracking-[0.3em] text-cyan">Cinematic Story Demo</p>
+            <p className="text-xs font-black uppercase tracking-[0.3em] text-cyan">시네마틱 스토리 데모</p>
             <p className="mt-1 text-sm font-bold text-muted">
-              {"Hospital Congestion -> Staff Detection -> AI Optimization -> Patient Guidance -> Improved Outcomes"}
+              {"병원 혼잡 -> 직원 감지 -> AI 최적화 -> 환자 안내 -> 운영 개선"}
             </p>
           </div>
           <div className="pointer-events-auto flex flex-wrap items-center gap-2">
             <button type="button" onClick={() => setPlaying((value) => !value)} className="inline-flex h-10 items-center gap-2 rounded-lg border border-cyan/40 bg-cyan/10 px-3 text-sm font-bold text-cyan">
               {playing ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-              {playing ? "Pause Demo" : "Play Demo"}
+              {playing ? "일시정지" : "재생"}
             </button>
             <button type="button" onClick={restart} className="inline-flex h-10 items-center gap-2 rounded-lg border border-line bg-panel2 px-3 text-sm font-bold text-muted hover:text-ink">
               <RotateCcw className="h-4 w-4" />
-              Restart Demo
+              다시 시작
             </button>
             <button type="button" onClick={skipScene} className="inline-flex h-10 items-center gap-2 rounded-lg border border-line bg-panel2 px-3 text-sm font-bold text-muted hover:text-ink">
               <SkipForward className="h-4 w-4" />
-              Skip Scene
+              장면 넘기기
             </button>
             <button type="button" onClick={onClose} className="grid h-10 w-10 place-items-center rounded-lg border border-line bg-panel2 text-muted hover:text-ink" aria-label="Close cinematic demo">
               <X className="h-4 w-4" />
@@ -682,7 +694,7 @@ export function CinematicDemo({ open, rooms, metrics, onClose }: Props) {
         <div className="mx-auto max-w-[1600px]">
           <div className="flex items-center justify-between gap-3 text-xs font-bold text-muted">
             <span>
-              Scene {sceneIndex + 1}/{scenes.length}: {scenes[sceneIndex].title}
+              장면 {sceneIndex + 1}/{scenes.length}: {scenes[sceneIndex].title}
             </span>
             <span>
               {Math.floor(elapsed)}s / {totalSeconds}s

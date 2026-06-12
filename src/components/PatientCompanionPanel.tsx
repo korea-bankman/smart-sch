@@ -1,4 +1,4 @@
-import { ArrowRight, CheckCircle2, Clock3, Footprints, MapPinned, Navigation, ShieldCheck, Stethoscope, TimerReset } from "lucide-react";
+import { ArrowRight, CalendarClock, CheckCircle2, Clock3, Footprints, MapPinned, Navigation, ShieldCheck, Share2, Stethoscope, TimerReset } from "lucide-react";
 import type { Patient, Room } from "../types";
 import { examLabels, examToRoom } from "../data/hospital";
 import { getPatientRouteInsight } from "../lib/patientInsights";
@@ -26,6 +26,8 @@ export function PatientCompanionPanel({ patient, rooms, onOpenDetail }: Props) {
   const nextCongestion = nextRoom ? congestionLabel(nextRoom.queue) : "확인 중";
   const elevatorQueue = rooms.filter((room) => room.type === "core").reduce((sum, room) => sum + room.queue, 0);
   const elevatorWait = patient.mode === "wheelchair" ? 7 + elevatorQueue * 0.8 : patient.mode === "elderly" ? 4 + elevatorQueue * 0.45 : 2 + elevatorQueue * 0.25;
+  const arrivalMinutes = Math.max(3, Math.round(insight.displayAfterWalking / Math.max(1, patient.aiOrder.length)));
+  const expectedArrival = `약 ${arrivalMinutes}분 후`;
 
   return (
     <section className="glass overflow-hidden rounded-xl">
@@ -51,6 +53,11 @@ export function PatientCompanionPanel({ patient, rooms, onOpenDetail }: Props) {
             </div>
             <MapPinned className="h-10 w-10 shrink-0 text-cyan" />
           </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-2">
+          <PatientMetric icon={MapPinned} label="현재 위치" value="자동 체크인 구역" />
+          <PatientMetric icon={CalendarClock} label="예상 도착" value={expectedArrival} />
         </div>
 
         <div className="grid grid-cols-3 gap-2">
@@ -118,7 +125,7 @@ export function PatientCompanionPanel({ patient, rooms, onOpenDetail }: Props) {
           <PatientAction icon={Navigation} label="길찾기 시작" tone="border-cyan/40 bg-cyan/10 text-cyan" />
           <PatientAction icon={CheckCircle2} label="도착 확인" tone="border-green/40 bg-green/10 text-green" />
           <PatientAction icon={Stethoscope} label="검사 완료" tone="border-line bg-panel2 text-muted" />
-          <PatientAction icon={ArrowRight} label="다음 검사 보기" tone="border-line bg-panel2 text-muted" />
+          <PatientAction icon={Share2} label="보호자 공유" tone="border-line bg-panel2 text-muted" />
         </div>
       </div>
     </section>

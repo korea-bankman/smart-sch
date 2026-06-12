@@ -1,4 +1,4 @@
-import { AlertTriangle, Bot, Clapperboard, Film, Play, RotateCcw, Shuffle, Users } from "lucide-react";
+import { AlertTriangle, Bot, Clapperboard, Film, MonitorPlay, Play, RotateCcw, Shuffle, Users } from "lucide-react";
 import type { Mode } from "../types";
 
 type Props = {
@@ -15,6 +15,7 @@ type Props = {
   onReset: () => void;
   onDemo: () => void;
   onCinematicDemo: () => void;
+  onPresentationMode: () => void;
   onMode: (mode: Mode) => void;
 };
 
@@ -49,7 +50,20 @@ export function ControlDock(props: Props) {
   return (
     <section className="glass rounded-xl p-3">
       <div className="grid gap-3 xl:grid-cols-[1.25fr_1.5fr_1fr] xl:items-stretch">
-        <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2">
+        <div className="grid gap-2 md:grid-cols-3 xl:grid-cols-1 2xl:grid-cols-3">
+          <button
+            type="button"
+            onClick={props.onPresentationMode}
+            className="flex min-h-[82px] items-center justify-center gap-3 rounded-xl border border-yellow/50 bg-yellow/15 px-4 text-left text-yellow transition hover:bg-yellow/20"
+          >
+            <span className="grid h-11 w-11 place-items-center rounded-xl bg-bg/60">
+              <MonitorPlay className="h-6 w-6" />
+            </span>
+            <span>
+              <span className="block text-base font-bold">Presentation Mode</span>
+              <span className="mt-1 block text-xs font-semibold text-muted">발표 후 KPI 화면 자동 복귀</span>
+            </span>
+          </button>
           <button
             type="button"
             onClick={props.onCinematicDemo}

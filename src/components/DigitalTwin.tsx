@@ -118,7 +118,17 @@ function RoomBox({ room }: { room: Room }) {
           {room.queue}명
         </Text>
       )}
+      {room.type === "exam" && <DoorMarker room={room} color={color} />}
     </group>
+  );
+}
+
+function DoorMarker({ room, color }: { room: Room; color: string }) {
+  return (
+    <mesh position={[0, -0.16, -room.size[2] / 2 - 0.06]} rotation={[-Math.PI / 2, 0, 0]}>
+      <planeGeometry args={[Math.min(0.5, room.size[0] * 0.55), 0.06]} />
+      <meshBasicMaterial color={color} transparent opacity={0.8} />
+    </mesh>
   );
 }
 
@@ -209,12 +219,57 @@ function PatientCloud({ patients, running }: { patients: Patient[]; running: boo
 function SelectedRoute({ patient, aiEnabled }: { patient: Patient | undefined; aiEnabled: boolean }) {
   const line = useMemo(() => {
     if (!patient || patient.route.length < 2) return null;
-    const geometry = new THREE.BufferGeometry().setFromPoints(patient.route.map((p) => new THREE.Vector3(p.x, p.y + 0.5, p.z)));
+    const geometry = new THREE.BufferGeometry().setFromPoints(patient.route.map((p) => new THREE.Vector3(p.x, p.y + 0.09, p.z)));
     const material = new THREE.LineBasicMaterial({ color: aiEnabled ? "#35d07f" : "#ff5b5b" });
     return new THREE.Line(geometry, material);
   }, [patient, aiEnabled]);
   if (!line) return null;
   return <primitive object={line} />;
+}
+
+const guidePaths: Vec3[][] = [
+  [
+    { x: -3.15, y: 0, z: 1.05 },
+    { x: -2.35, y: 0, z: -0.35 },
+    { x: 1.25, y: 0, z: 2.35 }
+  ],
+  [
+    { x: -2.35, y: 2.6, z: -0.35 },
+    { x: -2.55, y: 2.6, z: -1.05 },
+    { x: -1.4, y: 2.6, z: -1.45 },
+    { x: 0.75, y: 2.6, z: -3.05 }
+  ],
+  [
+    { x: -2.35, y: 2.6, z: -0.35 },
+    { x: -0.3, y: 2.6, z: -0.55 },
+    { x: 1.15, y: 2.6, z: 2.25 }
+  ]
+];
+
+function CorridorGuides() {
+  const lines = useMemo(
+    () =>
+      guidePaths.map((path) => {
+        const geometry = new THREE.BufferGeometry().setFromPoints(path.map((point) => new THREE.Vector3(point.x, point.y + 0.07, point.z)));
+        const material = new THREE.LineBasicMaterial({ color: "#28d3ff", transparent: true, opacity: 0.32 });
+        return new THREE.Line(geometry, material);
+      }),
+    []
+  );
+
+  return (
+    <>
+      {lines.map((line, index) => (
+        <primitive key={index} object={line} />
+      ))}
+      <Text position={[-2.2, 0.12, 0.45]} rotation={[-Math.PI / 2, 0, 0]} fontSize={0.12} color="#28d3ff">
+        MAIN CORRIDOR
+      </Text>
+      <Text position={[-1.3, 2.72, -2.55]} rotation={[-Math.PI / 2, 0, 0]} fontSize={0.12} color="#35d07f">
+        EXAM CORRIDOR
+      </Text>
+    </>
+  );
 }
 
 function SelectedPatientHalo({ patient, running }: { patient: Patient | undefined; running: boolean }) {
@@ -262,6 +317,7 @@ function Scene({ rooms, patients, selectedPatient, aiEnabled, running }: Props) 
       <pointLight position={[-3, 5, -2]} color="#28d3ff" intensity={4} />
       <Floor floor={1} />
       <Floor floor={2} />
+      <CorridorGuides />
       <CoreShaft />
       {visibleRooms.map((room) => (
         <RoomBox key={room.id} room={room} />

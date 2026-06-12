@@ -33,6 +33,7 @@ export default function App() {
   const [demoStep, setDemoStep] = useState("");
   const [demoStage, setDemoStage] = useState(0);
   const [cinematicOpen, setCinematicOpen] = useState(false);
+  const [presentationMode, setPresentationMode] = useState(false);
   const [patientDetailOpen, setPatientDetailOpen] = useState(false);
   const frameRef = useRef<number | null>(null);
   const lastFrameRef = useRef<number>(0);
@@ -103,6 +104,7 @@ export default function App() {
     setDemoStep("");
     setDemoStage(0);
     setCinematicOpen(false);
+    setPresentationMode(false);
     setViewMode("patient");
     setAudienceMode("simulation");
     setPatients(generatePatients(baseRooms, "normal", 20260605));
@@ -173,6 +175,27 @@ export default function App() {
     setDemoStep("데모 완료: AI 개입 후 체류시간, 대기시간, 병목 집중도가 개선되었습니다");
   }
 
+  function handlePresentationMode() {
+    setAudienceMode("simulation");
+    setViewMode("operations");
+    setRunning(true);
+    setAiEnabled(true);
+    setPresentationMode(true);
+    setDemoStep("발표 모드 진행 중: 시네마틱 데모 후 KPI 대시보드로 자동 복귀합니다");
+    setCinematicOpen(true);
+  }
+
+  function handleCinematicComplete() {
+    if (!presentationMode) return;
+    window.setTimeout(() => {
+      setCinematicOpen(false);
+      setAudienceMode("simulation");
+      setViewMode("operations");
+      setDemoStep("발표 모드 완료: Before/After KPI와 운영 개선 효과를 확인할 수 있습니다");
+      setPresentationMode(false);
+    }, 1600);
+  }
+
   return (
     <main className="min-h-full overflow-x-hidden bg-[radial-gradient(circle_at_top_left,_rgba(40,211,255,0.18),_transparent_32%),#070b12]">
       <header className="border-b border-line bg-bg/90 px-5 py-4 backdrop-blur">
@@ -209,6 +232,7 @@ export default function App() {
               onReset={handleReset}
               onDemo={handleDemoMode}
               onCinematicDemo={() => setCinematicOpen(true)}
+              onPresentationMode={handlePresentationMode}
               onMode={handleMode}
             />
             <ViewTabs value={viewMode} onChange={setViewMode} />
@@ -270,7 +294,16 @@ export default function App() {
         )}
       </div>
       <PatientDetailModal patient={selectedPatient} open={patientDetailOpen} onClose={() => setPatientDetailOpen(false)} />
-      <CinematicDemo open={cinematicOpen} rooms={rooms} metrics={metrics} onClose={() => setCinematicOpen(false)} />
+      <CinematicDemo
+        open={cinematicOpen}
+        rooms={rooms}
+        metrics={metrics}
+        onClose={() => {
+          setCinematicOpen(false);
+          setPresentationMode(false);
+        }}
+        onComplete={handleCinematicComplete}
+      />
     </main>
   );
 }
