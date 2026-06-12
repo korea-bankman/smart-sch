@@ -231,7 +231,6 @@ export default function App() {
               onRandomQueue={handleRandomQueue}
               onReset={handleReset}
               onDemo={handleDemoMode}
-              onCinematicDemo={() => setCinematicOpen(true)}
               onPresentationMode={handlePresentationMode}
               onMode={handleMode}
             />

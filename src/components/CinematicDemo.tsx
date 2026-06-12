@@ -394,13 +394,13 @@ function AIEffects({ sceneIndex, progress }: { sceneIndex: number; progress: num
 function CameraRig({ sceneIndex, progress }: { sceneIndex: number; progress: number }) {
   const { camera } = useThree();
   const targets = [
-    { pos: new THREE.Vector3(6.5, 7.2, 7.8), look: new THREE.Vector3(0, 1.2, -0.4) },
-    { pos: new THREE.Vector3(4.4, 4.6, 5.2), look: new THREE.Vector3(-1.1, 1.4, -0.9) },
-    { pos: new THREE.Vector3(5.7, 3.8, 3.6), look: new THREE.Vector3(-0.5, 1.8, -1.1) },
+    { pos: new THREE.Vector3(8.8, 8.4, 9.6), look: new THREE.Vector3(-0.15, 1.25, -0.35) },
+    { pos: new THREE.Vector3(6.4, 5.7, 6.9), look: new THREE.Vector3(-0.95, 1.45, -0.75) },
+    { pos: new THREE.Vector3(5.9, 4.3, 4.4), look: new THREE.Vector3(-0.45, 1.85, -1.0) },
     { pos: new THREE.Vector3(3.6, 3.1, 5.7), look: new THREE.Vector3(-1.7, 1.8, -0.7) },
     { pos: new THREE.Vector3(2.4, 2.9, 3.2), look: new THREE.Vector3(-2.1, 1.3, -0.7) },
-    { pos: new THREE.Vector3(6.2, 6.1, 6.2), look: new THREE.Vector3(0, 1.2, -0.7) },
-    { pos: new THREE.Vector3(5.6, 5.0, 7.2), look: new THREE.Vector3(0, 1.2, -0.5) }
+    { pos: new THREE.Vector3(7.3, 6.4, 7.2), look: new THREE.Vector3(0, 1.2, -0.7) },
+    { pos: new THREE.Vector3(7.0, 5.6, 8.2), look: new THREE.Vector3(0, 1.2, -0.5) }
   ];
 
   useFrame(() => {
@@ -642,7 +642,7 @@ export function CinematicDemo({ open, rooms, metrics, onClose, onComplete }: Pro
   return (
     <div className="fixed inset-0 z-[80] bg-[#03070d] text-ink">
       <div className="absolute inset-0">
-        <Canvas camera={{ position: [6.5, 7.2, 7.8], fov: 44 }} shadows>
+        <Canvas camera={{ position: [8.8, 8.4, 9.6], fov: 50 }} shadows>
           <Suspense fallback={null}>
             <CinematicWorld rooms={rooms} sceneIndex={sceneIndex} progress={progress} />
           </Suspense>
