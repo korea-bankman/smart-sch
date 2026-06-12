@@ -38,7 +38,7 @@ export function ControlDock(props: Props) {
   }[props.mode];
 
   const toolButtons = [
-    { label: "1000명", icon: Users, onClick: props.onGenerate, active: false, title: "환자 1000명 생성" },
+    { label: "환자 생성", icon: Users, onClick: props.onGenerate, active: false, title: "가상 환자 1000명 생성" },
     { label: props.running ? "시뮬레이션 정지" : "시뮬레이션 시작", icon: Play, onClick: props.onStart, active: props.running },
     { label: "AI", icon: Bot, onClick: props.onAi, active: props.aiEnabled, title: "AI 최적화 적용" },
     { label: "응급", icon: AlertTriangle, onClick: props.onEmergency, active: props.emergency, title: "응급환자 발생" },

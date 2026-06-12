@@ -152,6 +152,54 @@ export function FullHospitalMap({ rooms, nextExam, mode }: Props) {
         </div>
       </div>
 
+      <div className="mt-4 grid gap-3 2xl:hidden">
+        <div className="grid grid-cols-3 gap-2">
+          {([1, 2, 3] as const).map((floor) => (
+            <button
+              key={floor}
+              type="button"
+              onClick={() => setFocusedFloor(floor)}
+              className={`h-10 rounded-lg border text-xs font-black transition ${
+                focusedFloor === floor ? "border-cyan bg-cyan/20 text-cyan" : "border-line bg-panel2 text-muted"
+              }`}
+            >
+              {floor}층
+            </button>
+          ))}
+        </div>
+        <div className="flex items-center gap-2 rounded-xl border border-line bg-panel2 px-3 py-2">
+          <Search className="h-4 w-4 shrink-0 text-muted" />
+          <input
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="검사실 검색"
+            className="min-w-0 flex-1 bg-transparent text-sm font-bold text-ink outline-none placeholder:text-muted/70"
+          />
+        </div>
+        {normalizedQuery && (
+          <div className="dashboard-scroll flex gap-2 overflow-x-auto pb-1">
+            {matchedRooms.map((room) => (
+              <button
+                key={room.id}
+                type="button"
+                onClick={() => {
+                  setSelectedRoomId(room.id);
+                  setFocusedFloor(room.floor);
+                }}
+                className={`min-w-[132px] rounded-lg border px-3 py-2 text-left ${
+                  selectedRoom.id === room.id ? "border-white bg-white text-bg" : "border-line bg-panel2 text-ink"
+                }`}
+              >
+                <span className="block truncate text-xs font-black">{room.name}</span>
+                <span className={`text-[11px] font-semibold ${selectedRoom.id === room.id ? "text-bg/70" : "text-muted"}`}>
+                  {room.floor}층 · {estimateWalkingMinutes(room, mode)}분
+                </span>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
       <div className="mt-4 grid gap-4 2xl:grid-cols-[250px_minmax(0,1fr)_290px]">
         <aside className="hidden gap-3 2xl:order-1 2xl:grid">
           <div className="rounded-xl border border-cyan/25 bg-cyan/10 p-3">
@@ -254,7 +302,7 @@ export function FullHospitalMap({ rooms, nextExam, mode }: Props) {
             </div>
           </div>
 
-          <div className="relative mt-3 h-[460px] overflow-hidden rounded-xl border border-line bg-[#0a1d38] lg:h-[520px]">
+          <div className="relative mt-3 h-[360px] overflow-hidden rounded-xl border border-line bg-[#0a1d38] sm:h-[420px] lg:h-[520px]">
             <div
               className="absolute inset-0 opacity-40"
               style={{
@@ -268,15 +316,15 @@ export function FullHospitalMap({ rooms, nextExam, mode }: Props) {
             <div className="absolute left-[9%] top-[39%] rounded-full border border-cyan/30 bg-bg/80 px-3 py-1 text-[11px] font-black text-cyan">MAIN CORRIDOR</div>
             <div className="absolute bottom-4 left-4 rounded-full border border-line bg-bg/80 px-3 py-1 text-[11px] font-bold text-muted">정문·접수 방향</div>
             <div className="absolute right-4 top-4 rounded-full border border-line bg-bg/80 px-3 py-1 text-[11px] font-bold text-muted">Floor {focusedFloor}</div>
-            <div className="absolute left-4 top-4 z-20 rounded-xl border border-line bg-bg/90 p-3 shadow-xl">
+            <div className="absolute left-3 top-3 z-20 rounded-xl border border-line bg-bg/90 p-2 shadow-xl sm:left-4 sm:top-4 sm:p-3">
               <p className="text-[10px] font-bold uppercase tracking-wide text-muted">Estimated Navigation</p>
               <div className="mt-2 flex items-center gap-2">
                 <Clock3 className="h-4 w-4 text-cyan" />
                 <span className="text-lg font-black text-ink">{totalMovingMinutes}분</span>
               </div>
-              <p className="mt-1 text-[10px] font-bold text-muted">도보 {walkingMinutes}분 · 엘리베이터 {elevatorMinutes}분</p>
+              <p className="mt-1 hidden text-[10px] font-bold text-muted sm:block">도보 {walkingMinutes}분 · 엘리베이터 {elevatorMinutes}분</p>
             </div>
-            <div className="absolute bottom-4 right-4 z-20 flex items-end gap-2 rounded-xl border border-line bg-bg/85 p-3 shadow-xl">
+            <div className="absolute bottom-4 right-4 z-20 hidden items-end gap-2 rounded-xl border border-line bg-bg/85 p-3 shadow-xl sm:flex">
               <div className="grid gap-1">
                 {([3, 2, 1] as const).map((floor) => (
                   <button
@@ -311,8 +359,8 @@ export function FullHospitalMap({ rooms, nextExam, mode }: Props) {
                   key={room.id}
                   type="button"
                   onClick={() => setSelectedRoomId(room.id)}
-                  className={`absolute -translate-x-1/2 -translate-y-1/2 rounded-xl border px-3 py-2 text-left shadow-xl transition hover:z-30 hover:scale-[1.04] ${
-                    wide ? "w-[148px]" : "w-[116px]"
+                  className={`absolute -translate-x-1/2 -translate-y-1/2 rounded-xl border px-2 py-1.5 text-left shadow-xl transition hover:z-30 hover:scale-[1.04] sm:px-3 sm:py-2 ${
+                    wide ? "w-[112px] sm:w-[148px]" : "w-[96px] sm:w-[116px]"
                   } ${isSelected ? "z-30 border-white bg-white text-bg ring-4 ring-cyan/25" : `${congestionStyle(room)} hover:border-white/70`} ${
                     isNext ? "animate-pulse" : ""
                   }`}
@@ -320,9 +368,9 @@ export function FullHospitalMap({ rooms, nextExam, mode }: Props) {
                 >
                   <span className="flex items-center gap-1">
                     <CircleDot className={`h-3 w-3 shrink-0 ${isSelected ? "text-bg" : ""}`} />
-                    <span className="block truncate text-[11px] font-black">{room.name}</span>
+                    <span className="block truncate text-[10px] font-black sm:text-[11px]">{room.name}</span>
                   </span>
-                  <span className={`mt-1 block text-[10px] font-bold ${isSelected ? "text-bg/70" : "text-muted"}`}>
+                  <span className={`mt-1 block text-[9px] font-bold sm:text-[10px] ${isSelected ? "text-bg/70" : "text-muted"}`}>
                     {roomTypeLabel(room)} · {congestionLabel(room)} · {room.queue}명
                   </span>
                 </button>

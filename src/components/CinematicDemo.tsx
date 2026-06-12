@@ -392,18 +392,33 @@ function AIEffects({ sceneIndex, progress }: { sceneIndex: number; progress: num
 }
 
 function CameraRig({ sceneIndex, progress }: { sceneIndex: number; progress: number }) {
-  const { camera } = useThree();
-  const targets = [
-    { pos: new THREE.Vector3(8.8, 8.4, 9.6), look: new THREE.Vector3(-0.15, 1.25, -0.35) },
-    { pos: new THREE.Vector3(6.4, 5.7, 6.9), look: new THREE.Vector3(-0.95, 1.45, -0.75) },
-    { pos: new THREE.Vector3(5.9, 4.3, 4.4), look: new THREE.Vector3(-0.45, 1.85, -1.0) },
-    { pos: new THREE.Vector3(3.6, 3.1, 5.7), look: new THREE.Vector3(-1.7, 1.8, -0.7) },
-    { pos: new THREE.Vector3(2.4, 2.9, 3.2), look: new THREE.Vector3(-2.1, 1.3, -0.7) },
-    { pos: new THREE.Vector3(7.3, 6.4, 7.2), look: new THREE.Vector3(0, 1.2, -0.7) },
-    { pos: new THREE.Vector3(7.0, 5.6, 8.2), look: new THREE.Vector3(0, 1.2, -0.5) }
+  const { camera, size } = useThree();
+  const isMobile = size.width < 760;
+  const targets = isMobile
+    ? [
+        { pos: new THREE.Vector3(9.4, 9.4, 10.6), look: new THREE.Vector3(-0.2, 1.2, -0.4) },
+        { pos: new THREE.Vector3(8.0, 7.4, 8.7), look: new THREE.Vector3(-0.95, 1.5, -0.75) },
+        { pos: new THREE.Vector3(7.2, 6.1, 6.6), look: new THREE.Vector3(-0.5, 1.8, -1.0) },
+        { pos: new THREE.Vector3(6.6, 5.6, 7.2), look: new THREE.Vector3(-1.7, 1.75, -0.7) },
+        { pos: new THREE.Vector3(7.0, 6.8, 7.8), look: new THREE.Vector3(-2.05, 1.55, -0.9) },
+        { pos: new THREE.Vector3(8.2, 7.6, 8.5), look: new THREE.Vector3(0, 1.2, -0.7) },
+        { pos: new THREE.Vector3(8.0, 6.8, 9.4), look: new THREE.Vector3(0, 1.2, -0.5) }
+      ]
+    : [
+        { pos: new THREE.Vector3(8.8, 8.4, 9.6), look: new THREE.Vector3(-0.15, 1.25, -0.35) },
+        { pos: new THREE.Vector3(6.4, 5.7, 6.9), look: new THREE.Vector3(-0.95, 1.45, -0.75) },
+        { pos: new THREE.Vector3(5.9, 4.3, 4.4), look: new THREE.Vector3(-0.45, 1.85, -1.0) },
+        { pos: new THREE.Vector3(4.7, 4.2, 6.4), look: new THREE.Vector3(-1.7, 1.8, -0.7) },
+        { pos: new THREE.Vector3(5.8, 5.4, 6.2), look: new THREE.Vector3(-2.05, 1.55, -0.9) },
+        { pos: new THREE.Vector3(7.3, 6.4, 7.2), look: new THREE.Vector3(0, 1.2, -0.7) },
+        { pos: new THREE.Vector3(7.0, 5.6, 8.2), look: new THREE.Vector3(0, 1.2, -0.5) }
   ];
 
   useFrame(() => {
+    if (camera instanceof THREE.PerspectiveCamera) {
+      camera.fov = isMobile ? 58 : 50;
+      camera.updateProjectionMatrix();
+    }
     const current = targets[sceneIndex];
     const next = targets[Math.min(targets.length - 1, sceneIndex + 1)];
     const t = smooth(Math.min(1, progress * 0.9));
@@ -464,11 +479,11 @@ function ScenePanel({ sceneIndex, progress, metrics }: { sceneIndex: number; pro
   const textIndex = Math.min(scene.narration.length - 1, Math.floor(progress * scene.narration.length));
   const isFinal = sceneIndex === 6;
   return (
-    <div className="pointer-events-none absolute inset-0 z-10 flex flex-col justify-between px-5 pb-36 pt-32 md:px-8">
-      <div className="max-w-xl">
-        <p className="text-xs font-bold uppercase tracking-[0.32em] text-cyan">{scene.title}</p>
-        <h2 className="mt-3 text-3xl font-black text-ink md:text-5xl">{scene.label}</h2>
-        <p className="mt-4 text-lg font-bold leading-8 text-white/85">{scene.narration[textIndex]}</p>
+    <div className="pointer-events-none absolute inset-0 z-10 flex flex-col justify-between px-3 pb-24 pt-20 md:px-8 md:pb-36 md:pt-32">
+      <div className="max-w-sm rounded-2xl border border-line bg-bg/55 p-3 shadow-2xl backdrop-blur md:max-w-xl md:border-0 md:bg-transparent md:p-0 md:shadow-none md:backdrop-blur-0">
+        <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-cyan md:text-xs md:tracking-[0.32em]">{scene.title}</p>
+        <h2 className="mt-2 text-2xl font-black text-ink md:mt-3 md:text-5xl">{scene.label}</h2>
+        <p className="mt-2 text-sm font-bold leading-6 text-white/85 md:mt-4 md:text-lg md:leading-8">{scene.narration[textIndex]}</p>
       </div>
 
       {sceneIndex === 0 && (
@@ -640,7 +655,7 @@ export function CinematicDemo({ open, rooms, metrics, onClose, onComplete }: Pro
   }
 
   return (
-    <div className="fixed inset-0 z-[80] bg-[#03070d] text-ink">
+    <div className="fixed inset-0 z-[80] h-[100svh] overflow-hidden bg-[#03070d] text-ink">
       <div className="absolute inset-0">
         <Canvas camera={{ position: [8.8, 8.4, 9.6], fov: 50 }} shadows>
           <Suspense fallback={null}>
@@ -662,35 +677,35 @@ export function CinematicDemo({ open, rooms, metrics, onClose, onComplete }: Pro
         </div>
       )}
 
-      <div className="absolute left-0 right-0 top-0 z-30 border-b border-line bg-bg/65 px-4 py-3 backdrop-blur">
-        <div className="mx-auto flex max-w-[1600px] flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+      <div className="absolute left-0 right-0 top-0 z-30 border-b border-line bg-bg/70 px-3 py-2 backdrop-blur md:px-4 md:py-3">
+        <div className="mx-auto flex max-w-[1600px] items-center justify-between gap-2">
           <div>
-            <p className="text-xs font-black uppercase tracking-[0.3em] text-cyan">시네마틱 스토리 데모</p>
-            <p className="mt-1 text-sm font-bold text-muted">
+            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-cyan md:text-xs md:tracking-[0.3em]">시네마틱 스토리 데모</p>
+            <p className="mt-1 hidden text-sm font-bold text-muted md:block">
               {"병원 혼잡 -> 직원 감지 -> AI 최적화 -> 환자 안내 -> 운영 개선"}
             </p>
           </div>
-          <div className="pointer-events-auto flex flex-wrap items-center gap-2">
-            <button type="button" onClick={() => setPlaying((value) => !value)} className="inline-flex h-10 items-center gap-2 rounded-lg border border-cyan/40 bg-cyan/10 px-3 text-sm font-bold text-cyan">
+          <div className="pointer-events-auto flex shrink-0 items-center gap-1.5 md:gap-2">
+            <button type="button" onClick={() => setPlaying((value) => !value)} aria-label={playing ? "일시정지" : "재생"} className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-cyan/40 bg-cyan/10 px-2 text-xs font-bold text-cyan md:h-10 md:gap-2 md:px-3 md:text-sm">
               {playing ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-              {playing ? "일시정지" : "재생"}
+              <span className="hidden sm:inline">{playing ? "일시정지" : "재생"}</span>
             </button>
-            <button type="button" onClick={restart} className="inline-flex h-10 items-center gap-2 rounded-lg border border-line bg-panel2 px-3 text-sm font-bold text-muted hover:text-ink">
+            <button type="button" onClick={restart} aria-label="다시 시작" className="hidden h-10 items-center gap-2 rounded-lg border border-line bg-panel2 px-3 text-sm font-bold text-muted hover:text-ink sm:inline-flex">
               <RotateCcw className="h-4 w-4" />
               다시 시작
             </button>
-            <button type="button" onClick={skipScene} className="inline-flex h-10 items-center gap-2 rounded-lg border border-line bg-panel2 px-3 text-sm font-bold text-muted hover:text-ink">
+            <button type="button" onClick={skipScene} aria-label="장면 넘기기" className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-line bg-panel2 px-2 text-xs font-bold text-muted hover:text-ink md:h-10 md:gap-2 md:px-3 md:text-sm">
               <SkipForward className="h-4 w-4" />
-              장면 넘기기
+              <span className="hidden sm:inline">장면 넘기기</span>
             </button>
-            <button type="button" onClick={onClose} className="grid h-10 w-10 place-items-center rounded-lg border border-line bg-panel2 text-muted hover:text-ink" aria-label="Close cinematic demo">
+            <button type="button" onClick={onClose} className="grid h-9 w-9 place-items-center rounded-lg border border-line bg-panel2 text-muted hover:text-ink md:h-10 md:w-10" aria-label="Close cinematic demo">
               <X className="h-4 w-4" />
             </button>
           </div>
         </div>
       </div>
 
-      <div className="absolute bottom-0 left-0 right-0 z-30 border-t border-line bg-bg/70 px-4 py-3 backdrop-blur">
+      <div className="absolute bottom-0 left-0 right-0 z-30 border-t border-line bg-bg/75 px-3 py-2 backdrop-blur md:px-4 md:py-3">
         <div className="mx-auto max-w-[1600px]">
           <div className="flex items-center justify-between gap-3 text-xs font-bold text-muted">
             <span>
@@ -703,7 +718,7 @@ export function CinematicDemo({ open, rooms, metrics, onClose, onComplete }: Pro
           <div className="mt-2 h-2 overflow-hidden rounded-full bg-panel2">
             <div className="h-full rounded-full bg-cyan transition-[width]" style={{ width: `${percent}%` }} />
           </div>
-          <div className="mt-2 grid grid-cols-7 gap-1">
+          <div className="mt-2 hidden grid-cols-7 gap-1 sm:grid">
             {scenes.map((scene, index) => (
               <button
                 key={scene.title}
