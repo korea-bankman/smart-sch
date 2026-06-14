@@ -25,9 +25,10 @@ export function PatientModeScreen({ patient, rooms, patients, aiEnabled, running
   }
 
   const completed = 1;
-  const total = patient.aiOrder.length;
+  const activeOrder = aiEnabled ? patient.aiOrder : patient.fixedOrder;
+  const total = activeOrder.length;
   const progress = Math.min(100, (completed / Math.max(1, total)) * 100);
-  const nextExam = patient.aiOrder[0];
+  const nextExam = activeOrder[0];
   const insight = getPatientRouteInsight(patient);
 
   return (
@@ -49,7 +50,7 @@ export function PatientModeScreen({ patient, rooms, patients, aiEnabled, running
             </div>
           </div>
 
-          <PatientCompanionPanel patient={patient} rooms={rooms} onOpenDetail={onOpenDetail} />
+          <PatientCompanionPanel patient={patient} rooms={rooms} aiEnabled={aiEnabled} onOpenDetail={onOpenDetail} />
         </div>
       </div>
 
@@ -89,7 +90,7 @@ export function PatientModeScreen({ patient, rooms, patients, aiEnabled, running
             <span className="rounded-md border border-green/40 bg-green/10 px-2 py-1 text-xs font-bold text-green">이동 안내 중</span>
           </div>
           <div className="mt-4 grid gap-2 md:grid-cols-5">
-            {["체크인", "AI 추천", "이동", "도착 확인", "검사 완료"].map((step, index) => (
+            {["체크인", aiEnabled ? "AI 추천" : "고정 순서", "이동", "도착 확인", "검사 완료"].map((step, index) => (
               <div key={step} className={`rounded-lg border p-3 ${index <= 2 ? "border-cyan/40 bg-cyan/10" : "border-line bg-panel2"}`}>
                 <CheckCircle2 className={`h-4 w-4 ${index <= 2 ? "text-cyan" : "text-muted"}`} />
                 <p className="mt-2 text-xs font-bold text-ink">{step}</p>
@@ -104,9 +105,11 @@ export function PatientModeScreen({ patient, rooms, patients, aiEnabled, running
             <div className="mt-3 grid gap-2">
               <Notice
                 icon={Bell}
-                title={insight.sameOrder ? "현재 순서 유지" : "더 빠른 경로 적용됨"}
+                title={!aiEnabled ? "기존 검사 순서 안내" : insight.sameOrder ? "현재 순서 유지" : "더 빠른 경로 적용됨"}
                 body={
-                  insight.sameOrder
+                  !aiEnabled
+                    ? "AI 최적화가 꺼져 있어 병원 고정 검사 순서로 안내합니다."
+                    : insight.sameOrder
                     ? "검사 순서를 바꾸지 않는 것이 현재 대기 상황에서 가장 적합합니다."
                     : `${examLabels[nextExam]} 먼저 진행하면 ${minutes(insight.savedTotal)}을 절약할 수 있습니다.`
                 }

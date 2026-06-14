@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { AlertTriangle, Bot, CheckCircle2, Clock3, RotateCcw, Search, Send, Shuffle, Siren, TrendingDown, UserCheck } from "lucide-react";
+import { Activity, AlertTriangle, Bot, CheckCircle2, Clock3, Gauge, Radio, RotateCcw, Search, Send, Shuffle, Siren, TrendingDown, UserCheck } from "lucide-react";
 import type { Metrics, Patient, Room } from "../types";
 import { DigitalTwin } from "./DigitalTwin";
 import { OperationsPanel } from "./OperationsPanel";
@@ -31,7 +31,7 @@ export function StaffModeScreen(props: Props) {
   const patientInsight = patient ? getPatientRouteInsight(patient) : undefined;
   const wait60To119 = props.patients.filter((item) => item.after.waiting >= 60 && item.after.waiting < 120).length;
   const waitOver120 = props.patients.filter((item) => item.after.waiting >= 120).length;
-  const averageSaved = props.patients.reduce((sum, item) => sum + Math.max(0, item.before.total - item.after.total), 0) / Math.max(1, props.patients.length);
+  const averageSaved = props.aiEnabled ? props.patients.reduce((sum, item) => sum + Math.max(0, item.before.total - item.after.total), 0) / Math.max(1, props.patients.length) : 0;
   const congestionRank = props.rooms.filter((room) => room.type === "exam").sort((a, b) => b.queue - a.queue);
   const bottleneckRoom = congestionRank[0];
   const firstAiRoom = patient ? props.rooms.find((room) => room.id === examToRoom[patient.aiOrder[0]]) : undefined;
@@ -52,7 +52,32 @@ export function StaffModeScreen(props: Props) {
 
   return (
     <div className="grid gap-3">
-      <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-7">
+      <section className="glass rounded-xl p-3">
+        <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              <span className="grid h-9 w-9 place-items-center rounded-lg border border-cyan/30 bg-cyan/10">
+                <Radio className="h-4 w-4 text-cyan" />
+              </span>
+              <div>
+                <p className="text-xs font-bold uppercase tracking-wide text-cyan">Staff Operations Command</p>
+                <h2 className="text-lg font-black text-ink">직원용 병원 운영 관제</h2>
+              </div>
+            </div>
+            <p className="mt-2 text-xs font-semibold leading-5 text-muted">
+              검사실 대기열, 장기대기 위험군, AI 재배치 효과를 한 화면에서 확인하고 즉시 조치합니다.
+            </p>
+          </div>
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 xl:w-[620px]">
+            <CommandMetric label="AI 상태" value={props.aiEnabled ? "적용 중" : "미적용"} tone={props.aiEnabled ? "text-cyan" : "text-muted"} icon={Bot} />
+            <CommandMetric label="시뮬레이션" value={props.running ? "실행 중" : "정지"} tone={props.running ? "text-green" : "text-muted"} icon={Activity} />
+            <CommandMetric label="병목 완화" value={`${props.metrics.bottleneckReliefRate.toFixed(1)}%`} tone="text-green" icon={Gauge} />
+            <CommandMetric label="위험군" value={`${props.metrics.riskPatientsAfter}명`} tone="text-red" icon={Clock3} />
+          </div>
+        </div>
+      </section>
+
+      <section className="grid gap-2 md:grid-cols-2 xl:grid-cols-7">
         <StaffStat label="전체 환자" value={`${props.metrics.currentPatients.toLocaleString()}명`} sub="시뮬레이션 대상" icon={UserCheck} />
         <StaffStat label="혼잡순위 1위" value={congestionRank[0]?.name ?? "-"} sub={`${congestionRank[0]?.queue ?? 0}명 대기`} icon={AlertTriangle} tone="text-yellow" />
         <StaffStat label="혼잡순위 2위" value={congestionRank[1]?.name ?? "-"} sub={`${congestionRank[1]?.queue ?? 0}명 대기`} icon={AlertTriangle} tone="text-yellow" />
@@ -62,10 +87,10 @@ export function StaffModeScreen(props: Props) {
         <StaffStat label="절감 효과" value={minutes(averageSaved)} sub="환자 1명당 평균" icon={TrendingDown} tone="text-green" />
       </section>
 
-      <section className="grid min-w-0 gap-3 xl:grid-cols-[330px_minmax(0,1fr)_380px]">
-        <div className="grid min-w-0 content-start gap-3 xl:h-[740px] xl:grid-rows-[auto_minmax(0,1fr)] xl:overflow-hidden">
-          <OperationsPanel metrics={props.metrics} />
-          <div className="dashboard-scroll min-w-0 xl:min-h-0 xl:flex-1 xl:overflow-y-auto xl:pr-1">
+      <section className="grid min-w-0 items-start gap-3 xl:grid-cols-[340px_minmax(0,1fr)_390px]">
+        <div className="grid min-w-0 content-start gap-3">
+          <OperationsPanel metrics={props.metrics} variant="compact" />
+          <div className="min-w-0">
             <QueuePanel rooms={props.rooms} />
           </div>
         </div>
@@ -118,7 +143,7 @@ export function StaffModeScreen(props: Props) {
           </section>
         </div>
 
-        <div className="grid min-w-0 content-start gap-3 xl:h-[740px] xl:overflow-y-auto xl:pr-1">
+        <div className="grid min-w-0 content-start gap-3">
           {patient && (
             <section className="glass rounded-xl p-4">
               <div className="flex items-center justify-between">
@@ -169,13 +194,13 @@ export function StaffModeScreen(props: Props) {
                   기존 {patient.fixedOrder.map((exam) => examLabels[exam]).join(" -> ")}
                 </p>
                 <p className="mt-1 text-sm font-semibold leading-6 text-green">
-                  추천 {patient.aiOrder.map((exam) => examLabels[exam]).join(" -> ")}
+                  {props.aiEnabled ? "추천" : "AI 비활성"} {patient.aiOrder.map((exam) => examLabels[exam]).join(" -> ")}
                 </p>
                 <p className="mt-2 text-xs font-bold text-cyan">
                   추천 결과 {patientInsight?.statusLabel}
                 </p>
                 <p className="mt-2 text-xs font-bold text-muted">
-                  예상 절감 {minutes(patientInsight?.savedTotal ?? 0)}
+                  예상 절감 {minutes(props.aiEnabled ? (patientInsight?.savedTotal ?? 0) : 0)}
                 </p>
               </div>
               <div className="mt-3 rounded-xl border border-cyan/40 bg-cyan/10 p-4">
@@ -187,10 +212,10 @@ export function StaffModeScreen(props: Props) {
                   <ReasonLine label="병목 검사실" value={`${bottleneckRoom?.name ?? "-"} · ${bottleneckRoom?.queue ?? 0}명 대기`} tone="text-red" />
                   <ReasonLine label="선시행 권고" value={`${firstAiRoom?.name ?? "-"} · 대기 ${firstAiRoom?.queue ?? 0}명`} tone="text-green" />
                   <ReasonLine label="후순위 조정" value={`${deferredRoom?.name ?? "-"} 혼잡 완화 후 방문`} tone="text-yellow" />
-                  <ReasonLine label="예상 효과" value={`대기 ${minutes(patientInsight?.savedWaiting ?? 0)} / 이동 ${minutes(patientInsight?.savedWalking ?? 0)} 절감`} tone="text-cyan" />
+                  <ReasonLine label="예상 효과" value={`대기 ${minutes(props.aiEnabled ? (patientInsight?.savedWaiting ?? 0) : 0)} / 이동 ${minutes(props.aiEnabled ? (patientInsight?.savedWalking ?? 0) : 0)} 절감`} tone="text-cyan" />
                 </div>
                 <p className="mt-3 rounded-lg border border-line bg-bg/70 px-3 py-2 text-xs font-semibold leading-5 text-muted">
-                  권고: 현재 병목에 바로 진입하지 않고, 대기가 짧은 검사부터 진행해 총 체류시간을 낮춥니다.
+                  {props.aiEnabled ? "권고: 현재 병목에 바로 진입하지 않고, 대기가 짧은 검사부터 진행해 총 체류시간을 낮춥니다." : "AI 최적화가 꺼져 있어 현재는 기존 고정 순서 기준으로 운영됩니다."}
                 </p>
               </div>
               <div className="mt-3 grid grid-cols-2 gap-2">
@@ -229,15 +254,27 @@ export function StaffModeScreen(props: Props) {
 
 function StaffStat({ label, value, sub, icon: Icon, tone = "text-cyan" }: { label: string; value: string; sub: string; icon: typeof UserCheck; tone?: string }) {
   return (
-    <article className="glass rounded-xl p-4">
+    <article className="glass rounded-xl p-3">
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0">
           <p className="text-xs font-bold text-muted">{label}</p>
-          <p className="mt-2 truncate text-lg font-bold text-ink">{value}</p>
+          <p className="mt-1.5 truncate text-base font-bold text-ink">{value}</p>
           <p className="mt-1 truncate text-xs font-bold text-muted">{sub}</p>
         </div>
         <Icon className={`h-5 w-5 shrink-0 ${tone}`} />
       </div>
+    </article>
+  );
+}
+
+function CommandMetric({ label, value, icon: Icon, tone }: { label: string; value: string; icon: typeof UserCheck; tone: string }) {
+  return (
+    <article className="rounded-xl border border-line bg-panel2 px-3 py-2">
+      <div className="flex items-center justify-between gap-2">
+        <span className="truncate text-[11px] font-bold text-muted">{label}</span>
+        <Icon className={`h-4 w-4 shrink-0 ${tone}`} />
+      </div>
+      <p className={`mt-1 truncate text-sm font-black ${tone}`}>{value}</p>
     </article>
   );
 }

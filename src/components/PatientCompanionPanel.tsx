@@ -1,5 +1,5 @@
 import { ArrowRight, CalendarClock, CheckCircle2, Clock3, Footprints, MapPinned, Navigation, ShieldCheck, Share2, Stethoscope, TimerReset } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { Patient, Room } from "../types";
 import { examLabels, examToRoom } from "../data/hospital";
 import { getPatientRouteInsight } from "../lib/patientInsights";
@@ -8,13 +8,19 @@ import { congestionLabel, minutes } from "../lib/ui";
 type Props = {
   patient: Patient | undefined;
   rooms: Room[];
+  aiEnabled: boolean;
   onOpenDetail: () => void;
 };
 
-export function PatientCompanionPanel({ patient, rooms, onOpenDetail }: Props) {
+export function PatientCompanionPanel({ patient, rooms, aiEnabled, onOpenDetail }: Props) {
   const [journeyStatus, setJourneyStatus] = useState<"ready" | "walking" | "arrived" | "complete">("ready");
   const [notice, setNotice] = useState("AI 추천 경로가 준비되었습니다.");
   const [shared, setShared] = useState(false);
+
+  useEffect(() => {
+    setNotice(aiEnabled ? "AI 추천 경로가 준비되었습니다." : "기존 검사 순서 안내가 준비되었습니다.");
+    setJourneyStatus("ready");
+  }, [aiEnabled, patient?.id]);
 
   if (!patient) {
     return (
@@ -24,14 +30,18 @@ export function PatientCompanionPanel({ patient, rooms, onOpenDetail }: Props) {
     );
   }
 
-  const firstExam = patient.aiOrder[0];
+  const activeOrder = aiEnabled ? patient.aiOrder : patient.fixedOrder;
+  const firstExam = activeOrder[0];
   const nextRoom = rooms.find((room) => room.id === examToRoom[firstExam]);
   const insight = getPatientRouteInsight(patient);
   const nextFloor = nextRoom ? `${nextRoom.floor}층` : "확인 중";
   const nextCongestion = nextRoom ? congestionLabel(nextRoom.queue) : "확인 중";
   const elevatorQueue = rooms.filter((room) => room.type === "core").reduce((sum, room) => sum + room.queue, 0);
   const elevatorWait = patient.mode === "wheelchair" ? 7 + elevatorQueue * 0.8 : patient.mode === "elderly" ? 4 + elevatorQueue * 0.45 : 2 + elevatorQueue * 0.25;
-  const arrivalMinutes = Math.max(3, Math.round(insight.displayAfterWalking / Math.max(1, patient.aiOrder.length)));
+  const displayTotal = aiEnabled ? insight.displayAfterTotal : patient.before.total;
+  const displayWalking = aiEnabled ? insight.displayAfterWalking : patient.before.walking;
+  const displaySaved = aiEnabled ? insight.savedTotal : 0;
+  const arrivalMinutes = Math.max(3, Math.round(displayWalking / Math.max(1, activeOrder.length)));
   const expectedArrival = `약 ${arrivalMinutes}분 후`;
   const statusMeta =
     journeyStatus === "complete"
@@ -73,7 +83,7 @@ export function PatientCompanionPanel({ patient, rooms, onOpenDetail }: Props) {
           {patient.name}님, 다음 검사는 {examLabels[firstExam]}입니다
         </h2>
         <p className="mt-2 text-sm font-semibold leading-6 text-muted">
-          실시간 대기열을 반영해 총 체류시간이 가장 짧은 순서로 안내합니다.
+          {aiEnabled ? "실시간 대기열을 반영해 총 체류시간이 가장 짧은 순서로 안내합니다." : "AI 최적화가 꺼져 있어 병원 고정 검사 순서로 안내합니다."}
         </p>
       </div>
 
@@ -110,9 +120,9 @@ export function PatientCompanionPanel({ patient, rooms, onOpenDetail }: Props) {
         </div>
 
         <div className="grid grid-cols-3 gap-2">
-          <PatientMetric icon={Clock3} label="예상 체류" value={minutes(insight.displayAfterTotal)} />
-          <PatientMetric icon={Footprints} label="이동 시간" value={minutes(insight.displayAfterWalking)} />
-          <PatientMetric icon={ShieldCheck} label="절감 시간" value={minutes(insight.savedTotal)} />
+          <PatientMetric icon={Clock3} label="예상 체류" value={minutes(displayTotal)} />
+          <PatientMetric icon={Footprints} label="이동 시간" value={minutes(displayWalking)} />
+          <PatientMetric icon={ShieldCheck} label="절감 시간" value={minutes(displaySaved)} />
         </div>
 
         <div className="rounded-xl border border-yellow/40 bg-yellow/10 p-4">
@@ -134,18 +144,18 @@ export function PatientCompanionPanel({ patient, rooms, onOpenDetail }: Props) {
 
         <div className="rounded-xl border border-line bg-panel2 p-4">
           <div className="flex items-center justify-between gap-3">
-            <p className="text-xs font-bold text-muted">오늘의 AI 추천 검사 순서</p>
-            <span className="rounded-md border border-cyan/30 bg-cyan/10 px-2 py-1 text-[11px] font-bold text-cyan">
-              {insight.statusLabel}
+            <p className="text-xs font-bold text-muted">{aiEnabled ? "오늘의 AI 추천 검사 순서" : "오늘의 기존 검사 순서"}</p>
+            <span className={`rounded-md border px-2 py-1 text-[11px] font-bold ${aiEnabled ? "border-cyan/30 bg-cyan/10 text-cyan" : "border-line bg-bg text-muted"}`}>
+              {aiEnabled ? insight.statusLabel : "AI 미적용"}
             </span>
           </div>
-          {insight.sameOrder && (
+          {(insight.sameOrder || !aiEnabled) && (
             <p className="mt-2 text-xs font-semibold leading-5 text-muted">
-              현재 대기 상황에서는 기존 순서를 유지하는 안내가 가장 적합합니다.
+              {aiEnabled ? "현재 대기 상황에서는 기존 순서를 유지하는 안내가 가장 적합합니다." : "AI 버튼을 켜면 실시간 대기열 기반 추천 순서로 전환됩니다."}
             </p>
           )}
           <div className="mt-3 grid gap-2">
-            {patient.aiOrder.map((exam, index) => {
+            {activeOrder.map((exam, index) => {
               const room = rooms.find((item) => item.id === examToRoom[exam]);
               return (
                 <div key={`${exam}-${index}`} className="flex items-center gap-2 rounded-lg border border-line bg-bg/60 px-3 py-2">
@@ -156,7 +166,7 @@ export function PatientCompanionPanel({ patient, rooms, onOpenDetail }: Props) {
                       {room?.floor ?? "-"}층 · 대기 {room?.queue ?? 0}명 · 평균 {room?.examMinutes ?? 0}분
                     </span>
                   </span>
-                  {index < patient.aiOrder.length - 1 && <ArrowRight className="h-4 w-4 shrink-0 text-muted" />}
+                  {index < activeOrder.length - 1 && <ArrowRight className="h-4 w-4 shrink-0 text-muted" />}
                 </div>
               );
             })}

@@ -95,6 +95,15 @@ export type Metrics = {
   utilizationIncreaseRate: number;
   complaintReduction: number;
   averageTurnover: number;
+  patientsReassigned: number;
+  reassignmentRate: number;
+  throughputGain: number;
+  bottleneckReliefRate: number;
+  riskPatientsBefore: number;
+  riskPatientsAfter: number;
+  riskReductionRate: number;
+  accessibilityDelay: number;
+  queueBalanceScore: number;
   queueVarianceBefore: number;
   queueVarianceAfter: number;
   busiestRoom: Room;

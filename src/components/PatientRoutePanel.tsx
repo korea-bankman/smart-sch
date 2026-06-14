@@ -7,12 +7,17 @@ type Props = {
   patient: Patient | undefined;
   patients: Patient[];
   selectedPatientId: number;
+  aiEnabled: boolean;
   onSelect: (id: number) => void;
   onOpenDetail: () => void;
 };
 
-export function PatientRoutePanel({ patient, patients, selectedPatientId, onSelect, onOpenDetail }: Props) {
+export function PatientRoutePanel({ patient, patients, selectedPatientId, aiEnabled, onSelect, onOpenDetail }: Props) {
   const insight = patient ? getPatientRouteInsight(patient) : undefined;
+  const activeSavedTotal = aiEnabled ? (insight?.savedTotal ?? 0) : 0;
+  const activeSavedWaiting = aiEnabled ? (insight?.savedWaiting ?? 0) : 0;
+  const activeSavedWalking = aiEnabled ? (insight?.savedWalking ?? 0) : 0;
+  const activeAfterTotal = aiEnabled ? (insight?.displayAfterTotal ?? patient?.after.total ?? 0) : (patient?.before.total ?? 0);
 
   return (
     <section className="glass rounded-xl p-4">
@@ -43,8 +48,8 @@ export function PatientRoutePanel({ patient, patients, selectedPatientId, onSele
                 <p className="mt-1 text-xs font-bold text-muted">{patient.age}세 · {patient.mode}</p>
               </div>
               <div className="rounded-lg border border-green/40 bg-green/10 px-3 py-2 text-right">
-                <p className="text-xs font-bold text-muted">총 절감</p>
-                <p className="text-lg font-bold text-green">{minutes(insight?.savedTotal ?? 0)}</p>
+                <p className="text-xs font-bold text-muted">{aiEnabled ? "총 절감" : "AI 미적용"}</p>
+                <p className={`text-lg font-bold ${aiEnabled ? "text-green" : "text-muted"}`}>{minutes(activeSavedTotal)}</p>
               </div>
             </div>
             <button
@@ -56,18 +61,20 @@ export function PatientRoutePanel({ patient, patients, selectedPatientId, onSele
             </button>
           </div>
           <RouteBox title="기존 고정 순서" order={patient.fixedOrder.map((exam) => examLabels[exam])} total={patient.before.total} tone="text-red" />
-          <RouteBox title="AI 추천 순서" order={patient.aiOrder.map((exam) => examLabels[exam])} total={insight?.displayAfterTotal ?? patient.after.total} tone="text-green" />
-          {insight?.sameOrder && (
-            <div className="rounded-lg border border-cyan/30 bg-cyan/10 p-3">
-              <p className="text-xs font-bold text-cyan">{insight.statusLabel}</p>
+          <RouteBox title={aiEnabled ? "AI 추천 순서" : "AI 추천 순서 (비활성)"} order={patient.aiOrder.map((exam) => examLabels[exam])} total={activeAfterTotal} tone={aiEnabled ? "text-green" : "text-muted"} />
+          {(!aiEnabled || insight?.sameOrder) && (
+            <div className={`rounded-lg border p-3 ${aiEnabled ? "border-cyan/30 bg-cyan/10" : "border-line bg-panel2"}`}>
+              <p className={`text-xs font-bold ${aiEnabled ? "text-cyan" : "text-muted"}`}>{aiEnabled ? insight?.statusLabel : "AI 최적화가 꺼져 있어 기존 고정 순서 기준으로 표시합니다."}</p>
               <p className="mt-1 text-xs font-semibold leading-5 text-muted">
-                이 환자는 검사 순서가 같으므로 개인 경로 절감은 0분으로 표시합니다. 전체 개선율은 운영 단위의 대기열 완화 효과입니다.
+                {aiEnabled
+                  ? "이 환자는 검사 순서가 같으므로 개인 경로 절감은 0분으로 표시합니다. 전체 개선율은 운영 단위의 대기열 완화 효과입니다."
+                  : "AI 버튼을 다시 누르면 실시간 대기열 기반 추천 순서와 절감 시간이 활성화됩니다."}
               </p>
             </div>
           )}
           <div className="grid grid-cols-2 gap-2">
-            <MiniMetric label="대기 감소" value={minutes(insight?.savedWaiting ?? 0)} />
-            <MiniMetric label="이동 감소" value={minutes(insight?.savedWalking ?? 0)} />
+            <MiniMetric label="대기 감소" value={minutes(activeSavedWaiting)} />
+            <MiniMetric label="이동 감소" value={minutes(activeSavedWalking)} />
           </div>
         </div>
       )}

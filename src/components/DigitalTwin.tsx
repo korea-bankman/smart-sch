@@ -55,20 +55,20 @@ function Floor({ floor }: { floor: 1 | 2 }) {
     <group position={[0, y, 0]}>
       <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
         <shapeGeometry args={[shape]} />
-        <meshStandardMaterial color="#101b2d" transparent opacity={0.78} roughness={0.8} metalness={0.1} />
+        <meshStandardMaterial color="#101b2d" transparent opacity={0.78} roughness={0.8} metalness={0.1} side={THREE.DoubleSide} />
       </mesh>
-      <mesh position={[0, 0.04, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+      <mesh position={[0, 0.04, 0]} rotation={[-Math.PI / 2, 0, 0]} renderOrder={2}>
         <shapeGeometry args={[shape]} />
-        <meshBasicMaterial color={floor === 1 ? "#2f67b2" : "#31c995"} transparent opacity={0.065} />
+        <meshBasicMaterial color={floor === 1 ? "#2f67b2" : "#31c995"} transparent opacity={0.09} side={THREE.DoubleSide} depthWrite={false} polygonOffset polygonOffsetFactor={-1} />
       </mesh>
-      <mesh position={[0, 0.025, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+      <mesh position={[0, 0.11, 0]} rotation={[-Math.PI / 2, 0, 0]} renderOrder={3}>
         <planeGeometry args={[7.5, 8.8]} />
-        <meshBasicMaterial map={floor === 1 ? texture1 : texture2} transparent opacity={0.28} />
+        <meshBasicMaterial map={floor === 1 ? texture1 : texture2} transparent opacity={0.42} side={THREE.DoubleSide} depthWrite={false} polygonOffset polygonOffsetFactor={-2} />
       </mesh>
       <FloorScanner floor={floor} />
       <mesh position={[0, -0.12, 0]} rotation={[-Math.PI / 2, 0, 0]}>
         <shapeGeometry args={[shape]} />
-        <meshStandardMaterial color="#20324c" />
+        <meshStandardMaterial color="#20324c" side={THREE.DoubleSide} />
       </mesh>
       <Text position={[-3.45, 0.16, -4.15]} rotation={[-Math.PI / 2, 0, 0]} fontSize={0.32} color="#2f67b2">
         {floor}F
@@ -79,7 +79,7 @@ function Floor({ floor }: { floor: 1 | 2 }) {
 
 function FloorScanner({ floor }: { floor: 1 | 2 }) {
   const ref = useRef<THREE.Mesh>(null);
-  const y = 0.08;
+  const y = 0.13;
 
   useFrame(({ clock }) => {
     if (!ref.current) return;
@@ -89,9 +89,9 @@ function FloorScanner({ floor }: { floor: 1 | 2 }) {
   });
 
   return (
-    <mesh ref={ref} position={[0, y, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+    <mesh ref={ref} position={[0, y, 0]} rotation={[-Math.PI / 2, 0, 0]} renderOrder={4}>
       <ringGeometry args={[2.65, 2.72, 96]} />
-      <meshBasicMaterial color={floor === 1 ? "#2f67b2" : "#31c995"} transparent opacity={0.2} />
+      <meshBasicMaterial color={floor === 1 ? "#2f67b2" : "#31c995"} transparent opacity={0.22} side={THREE.DoubleSide} depthWrite={false} />
     </mesh>
   );
 }

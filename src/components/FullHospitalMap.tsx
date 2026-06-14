@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
-import { Accessibility, Building2, ChevronRight, CircleDot, Clock3, LocateFixed, Search, Sparkles, Waypoints } from "lucide-react";
+import { Accessibility, ArrowUpDown, Building2, CheckCircle2, ChevronRight, CircleDot, Clock3, Footprints, LocateFixed, MapPin, Navigation, Search, Sparkles, Waypoints } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import type { ExamId, Mode, Room } from "../types";
 import { examLabels, examToRoom } from "../data/hospital";
 
@@ -34,10 +35,59 @@ const roomHints: Partial<Record<string, string>> = {
   elevator_3f: "3층 중앙 엘리베이터 코어입니다."
 };
 
+const floorMapImages: Partial<Record<1 | 2 | 3, string>> = {
+  1: "/floors/floor_1f.png",
+  2: "/floors/floor_2f.png",
+  3: "/floors/floor_3f.png"
+};
+
+const roomMapPoints: Record<string, { x: number; y: number }> = {
+  checkin: { x: 25, y: 60 },
+  imaging_center: { x: 70, y: 73 },
+  administration_1f: { x: 35, y: 25 },
+  pharmacy: { x: 41, y: 21 },
+  cooperation: { x: 16, y: 40 },
+  elevator_1f: { x: 43, y: 36 },
+
+  blood_room: { x: 20, y: 38 },
+  respiratory_test: { x: 23, y: 32 },
+  cardiac_test: { x: 31, y: 25 },
+  injection_room: { x: 64, y: 7 },
+  digestive_center: { x: 64, y: 64 },
+  endoscopy_center: { x: 65, y: 79 },
+  cardio_center: { x: 64, y: 30 },
+  neuro_center: { x: 64, y: 51 },
+  administration_2f: { x: 35, y: 42 },
+  elevator_2f: { x: 43, y: 37 },
+
+  family_medicine: { x: 19, y: 47 },
+  diabetes_center: { x: 28, y: 40 },
+  breast_thyroid: { x: 36, y: 31 },
+  ent_center: { x: 69, y: 19 },
+  eye_center: { x: 66, y: 40 },
+  joint_spine: { x: 66, y: 55 },
+  elevator_3f: { x: 43, y: 42 }
+};
+
+const routeStartPoints: Record<1 | 2 | 3, { x: number; y: number }> = {
+  1: { x: 25, y: 60 },
+  2: { x: 43, y: 37 },
+  3: { x: 43, y: 42 }
+};
+
+const routeCorridorPoints: Record<1 | 2 | 3, { x: number; y: number }> = {
+  1: { x: 49, y: 39 },
+  2: { x: 43, y: 42 },
+  3: { x: 43, y: 44 }
+};
+
 const xRange = [-3.45, 1.95];
 const zRange = [-3.45, 2.85];
 
 function projectPoint(room: Room) {
+  const mapPoint = roomMapPoints[room.id];
+  if (mapPoint) return mapPoint;
+
   const x = ((room.position.x - xRange[0]) / (xRange[1] - xRange[0])) * 100;
   const y = ((room.position.z - zRange[0]) / (zRange[1] - zRange[0])) * 100;
   return {
@@ -67,6 +117,13 @@ function roomTypeLabel(room: Room) {
   return "안내";
 }
 
+function routeLabel(room: Room | undefined, floor: 1 | 2 | 3) {
+  if (room) return room.floor === 1 ? "GATE1에서 출발" : `${room.floor}층 엘리베이터에서 출발`;
+  if (floor === 1) return "GATE1·체크인";
+  if (floor === 2) return "2층 엘리베이터";
+  return "3층 엘리베이터";
+}
+
 function floorCongestion(rooms: Room[], floor: 1 | 2 | 3) {
   const floorRooms = rooms.filter((room) => room.floor === floor && room.type !== "core");
   const totalQueue = floorRooms.reduce((sum, room) => sum + room.queue, 0);
@@ -85,20 +142,30 @@ export function FullHospitalMap({ rooms, nextExam, mode }: Props) {
   const nextRoomId = nextExam ? examToRoom[nextExam] : undefined;
   const nextRoom = rooms.find((room) => room.id === nextRoomId);
   const [focusedFloor, setFocusedFloor] = useState<1 | 2 | 3>(nextRoom?.floor ?? 2);
-  const [selectedRoomId, setSelectedRoomId] = useState<string | undefined>(nextRoomId ?? "checkin");
+  const [selectedRoomId, setSelectedRoomId] = useState<string | undefined>(nextRoomId);
   const [query, setQuery] = useState("");
+  const [navigationActive, setNavigationActive] = useState(false);
 
-  const selectedRoom = rooms.find((room) => room.id === selectedRoomId) ?? nextRoom ?? rooms[0];
+  const selectedRoom = rooms.find((room) => room.id === selectedRoomId);
   const focusedRooms = rooms.filter((room) => room.floor === focusedFloor);
   const normalizedQuery = query.trim().toLowerCase();
-  const selectedPoint = projectPoint(selectedRoom);
+  const selectedPoint = selectedRoom ? projectPoint(selectedRoom) : undefined;
+  const selectedRoomOnFocusedFloor = Boolean(selectedRoom && selectedRoom.floor === focusedFloor);
+  const floorMapImage = floorMapImages[focusedFloor];
   const nextExamLabel = nextExam ? examLabels[nextExam] : "다음 검사";
   const floorCore = focusedRooms.find((room) => room.type === "core");
   const corePoint = floorCore ? projectPoint(floorCore) : { x: 36, y: 50 };
-  const routePoints = `14,78 ${corePoint.x},78 ${corePoint.x},${corePoint.y} ${selectedPoint.x},${selectedPoint.y}`;
-  const walkingMinutes = estimateWalkingMinutes(selectedRoom, mode);
-  const elevatorMinutes = selectedRoom.floor === 1 ? 0 : mode === "wheelchair" ? 7 : mode === "elderly" ? 5 : 3;
+  const routeStartPoint = routeStartPoints[focusedFloor];
+  const routeCorridorPoint = routeCorridorPoints[focusedFloor] ?? corePoint;
+  const routeBendPoint = selectedPoint ? { x: routeCorridorPoint.x, y: selectedPoint.y } : routeCorridorPoint;
+  const routePointList = selectedRoomOnFocusedFloor && selectedPoint ? [routeStartPoint, routeCorridorPoint, routeBendPoint, selectedPoint] : [];
+  const routePath = routePointList.length
+    ? routePointList.map((point, index) => `${index === 0 ? "M" : "L"} ${point.x} ${point.y}`).join(" ")
+    : "";
+  const walkingMinutes = selectedRoom ? estimateWalkingMinutes(selectedRoom, mode) : 0;
+  const elevatorMinutes = selectedRoom ? (selectedRoom.floor === 1 ? 0 : mode === "wheelchair" ? 7 : mode === "elderly" ? 5 : 3) : 0;
   const totalMovingMinutes = walkingMinutes + elevatorMinutes;
+  const floorHotRooms = focusedRooms.filter((room) => room.type !== "core" && room.queue >= 26).length;
   const quickDestinations = useMemo(() => {
     const ids = [nextRoomId, "blood_room", "imaging_center", "cardiac_test", "injection_room", "respiratory_test"].filter(Boolean);
     return ids
@@ -117,6 +184,38 @@ export function FullHospitalMap({ rooms, nextExam, mode }: Props) {
   }, [normalizedQuery, rooms]);
 
   const elevatorWait = mode === "wheelchair" ? "휠체어 모드: 엘리베이터 대기 7~9분과 넓은 회전 동선을 반영합니다." : mode === "elderly" ? "고령자 모드: 보행속도 35% 감속과 여유 이동시간을 반영합니다." : "일반 모드: 표준 보행속도와 중앙 엘리베이터 기준으로 안내합니다.";
+  const routeGuideSteps = selectedRoom
+    ? [
+        { label: "출발", value: "정문·자동 체크인", icon: LocateFixed },
+        {
+          label: selectedRoom.floor === 1 ? "이동" : "층간 이동",
+          value: selectedRoom.floor === 1 ? "1층 중앙 복도 이용" : `중앙 엘리베이터로 ${selectedRoom.floor}층 이동`,
+          icon: selectedRoom.floor === 1 ? Footprints : ArrowUpDown
+        },
+        { label: "도착", value: `${selectedRoom.name} 대기 등록`, icon: MapPin }
+      ]
+    : [
+        { label: "1", value: "층을 먼저 선택", icon: Building2 },
+        { label: "2", value: "검사실을 직접 선택", icon: MapPin },
+        { label: "3", value: "길찾기 시작", icon: Navigation }
+      ];
+
+  function changeFloor(floor: 1 | 2 | 3) {
+    setFocusedFloor(floor);
+    setSelectedRoomId(undefined);
+    setNavigationActive(false);
+  }
+
+  function selectRoom(room: Room) {
+    setSelectedRoomId(room.id);
+    setFocusedFloor(room.floor);
+    setNavigationActive(false);
+  }
+
+  function startNavigation() {
+    if (!selectedRoom) return;
+    setNavigationActive(true);
+  }
 
   return (
     <section className="glass rounded-xl p-3 sm:p-4">
@@ -132,7 +231,7 @@ export function FullHospitalMap({ rooms, nextExam, mode }: Props) {
             </div>
           </div>
           <p className="mt-2 hidden max-w-3xl text-xs font-semibold leading-5 text-muted sm:block">
-            환자용 화면에서는 전체 병원 구조를 모식도로 제공하고, AI가 추천한 다음 검사 위치를 층별 안내판 위에 바로 강조합니다.
+            환자용 화면에서는 병원 안내도 기반 평면도를 사용하고, 현재 위치·엘리베이터·목적지·이동 경로만 강조해 보여줍니다.
           </p>
         </div>
         <div className="flex shrink-0 flex-wrap items-center gap-3">
@@ -153,12 +252,28 @@ export function FullHospitalMap({ rooms, nextExam, mode }: Props) {
       </div>
 
       <div className="mt-3 grid gap-2 2xl:hidden sm:mt-4 sm:gap-3">
+        <div className="rounded-xl border border-cyan/25 bg-cyan/10 p-3">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-[11px] font-black uppercase tracking-wide text-cyan">Patient Route</p>
+              <p className="mt-1 truncate text-sm font-black text-ink">
+                {selectedRoom ? `정문 → ${selectedRoom.name}` : `${floorNames[focusedFloor]} 탐색 중`}
+              </p>
+              <p className="mt-1 text-[11px] font-semibold text-muted">
+                {selectedRoom ? `${selectedRoom.floor}층 · 예상 ${totalMovingMinutes}분 · ${congestionLabel(selectedRoom)}` : "검사실을 누르면 경로와 안내가 생성됩니다."}
+              </p>
+            </div>
+            <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-cyan/30 bg-bg/60 text-cyan">
+              {selectedRoom ? <Navigation className="h-5 w-5" /> : <MapPin className="h-5 w-5" />}
+            </div>
+          </div>
+        </div>
         <div className="grid grid-cols-3 gap-2">
           {([1, 2, 3] as const).map((floor) => (
             <button
               key={floor}
               type="button"
-              onClick={() => setFocusedFloor(floor)}
+              onClick={() => changeFloor(floor)}
               className={`h-9 rounded-lg border text-xs font-black transition sm:h-10 ${
                 focusedFloor === floor ? "border-cyan bg-cyan/20 text-cyan" : "border-line bg-panel2 text-muted"
               }`}
@@ -176,6 +291,27 @@ export function FullHospitalMap({ rooms, nextExam, mode }: Props) {
             className="min-w-0 flex-1 bg-transparent text-sm font-bold text-ink outline-none placeholder:text-muted/70"
           />
         </div>
+        {!normalizedQuery && (
+          <div className="dashboard-scroll flex gap-2 overflow-x-auto pb-1">
+            {quickDestinations.map((room) => (
+              <button
+                key={room.id}
+                type="button"
+                onClick={() => {
+                  selectRoom(room);
+                }}
+                className={`min-w-[138px] rounded-lg border px-3 py-2 text-left ${
+                  selectedRoom?.id === room.id ? "border-white bg-white text-bg" : "border-line bg-panel2 text-ink"
+                }`}
+              >
+                <span className="block truncate text-xs font-black">{room.id === nextRoomId ? "다음 검사 · " : ""}{room.name}</span>
+                <span className={`text-[11px] font-semibold ${selectedRoom?.id === room.id ? "text-bg/70" : "text-muted"}`}>
+                  {room.floor}층 · 대기 {room.queue}명
+                </span>
+              </button>
+            ))}
+          </div>
+        )}
         {normalizedQuery && (
           <div className="dashboard-scroll flex gap-2 overflow-x-auto pb-1">
             {matchedRooms.map((room) => (
@@ -183,15 +319,14 @@ export function FullHospitalMap({ rooms, nextExam, mode }: Props) {
                 key={room.id}
                 type="button"
                 onClick={() => {
-                  setSelectedRoomId(room.id);
-                  setFocusedFloor(room.floor);
+                  selectRoom(room);
                 }}
                 className={`min-w-[132px] rounded-lg border px-3 py-2 text-left ${
-                  selectedRoom.id === room.id ? "border-white bg-white text-bg" : "border-line bg-panel2 text-ink"
+                  selectedRoom?.id === room.id ? "border-white bg-white text-bg" : "border-line bg-panel2 text-ink"
                 }`}
               >
                 <span className="block truncate text-xs font-black">{room.name}</span>
-                <span className={`text-[11px] font-semibold ${selectedRoom.id === room.id ? "text-bg/70" : "text-muted"}`}>
+                <span className={`text-[11px] font-semibold ${selectedRoom?.id === room.id ? "text-bg/70" : "text-muted"}`}>
                   {room.floor}층 · {estimateWalkingMinutes(room, mode)}분
                 </span>
               </button>
@@ -210,15 +345,14 @@ export function FullHospitalMap({ rooms, nextExam, mode }: Props) {
                   key={room.id}
                   type="button"
                   onClick={() => {
-                    setSelectedRoomId(room.id);
-                    setFocusedFloor(room.floor);
+                    selectRoom(room);
                   }}
                   className={`rounded-lg border px-3 py-2 text-left transition ${
-                    selectedRoom.id === room.id ? "border-white bg-white text-bg" : "border-line bg-bg text-ink hover:border-cyan/50"
+                    selectedRoom?.id === room.id ? "border-white bg-white text-bg" : "border-line bg-bg text-ink hover:border-cyan/50"
                   }`}
                 >
                   <span className="block truncate text-xs font-black">{room.name}</span>
-                  <span className={`text-[11px] font-semibold ${selectedRoom.id === room.id ? "text-bg/70" : "text-muted"}`}>
+                  <span className={`text-[11px] font-semibold ${selectedRoom?.id === room.id ? "text-bg/70" : "text-muted"}`}>
                     {room.floor}층 · 예상 이동 {estimateWalkingMinutes(room, mode)}분
                   </span>
                 </button>
@@ -247,7 +381,7 @@ export function FullHospitalMap({ rooms, nextExam, mode }: Props) {
                 <button
                   key={floor}
                   type="button"
-                  onClick={() => setFocusedFloor(floor)}
+                  onClick={() => changeFloor(floor)}
                   className={`rounded-xl border p-3 text-left transition ${
                     focusedFloor === floor ? "border-cyan bg-cyan/15 shadow-lg shadow-cyan/10" : "border-line bg-panel2 hover:border-cyan/50"
                   }`}
@@ -274,8 +408,7 @@ export function FullHospitalMap({ rooms, nextExam, mode }: Props) {
                   key={room.id}
                   type="button"
                   onClick={() => {
-                    setSelectedRoomId(room.id);
-                    setFocusedFloor(room.floor);
+                    selectRoom(room);
                   }}
                   className="flex items-center justify-between gap-2 rounded-lg border border-line bg-bg px-3 py-2 text-left transition hover:border-cyan/50"
                 >
@@ -298,31 +431,99 @@ export function FullHospitalMap({ rooms, nextExam, mode }: Props) {
             </div>
             <div className="flex flex-wrap gap-1.5 text-[10px] font-bold sm:gap-2 sm:text-[11px]">
               <Badge text={`다음 검사 ${nextExamLabel}`} tone="cyan" />
-              <Badge text={`선택 ${selectedRoom.name}`} tone="green" />
+              <Badge text={selectedRoomOnFocusedFloor && selectedRoom ? `선택 ${selectedRoom.name}` : "층 보기 모드"} tone="green" />
+              <Badge text={`혼잡 ${floorHotRooms}곳`} tone={floorHotRooms > 0 ? "yellow" : "green"} />
             </div>
           </div>
 
-          <div className="relative mt-2 h-[430px] overflow-hidden rounded-xl border border-line bg-[#0a1d38] sm:mt-3 sm:h-[420px] lg:h-[520px]">
+          <div className="relative mx-auto mt-2 aspect-[750/880] w-full max-w-[760px] overflow-hidden rounded-xl border border-line bg-[#f6fbff] sm:mt-3" style={{ touchAction: "pan-y" }}>
+            {floorMapImage && (
+              <>
+                <img src={floorMapImage} alt={`${floorNames[focusedFloor]} 평면도`} className="absolute inset-0 h-full w-full object-fill opacity-95" />
+                <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(6,18,37,0.03),rgba(47,103,178,0.05))]" />
+              </>
+            )}
             <div
-              className="absolute inset-0 opacity-40"
+              className={`absolute inset-0 ${floorMapImage ? "opacity-10" : "opacity-40"}`}
               style={{
                 backgroundImage:
                   "linear-gradient(rgba(47,103,178,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(47,103,178,0.08) 1px, transparent 1px)",
                 backgroundSize: "34px 34px"
               }}
             />
-            <div className="absolute left-[8%] right-[8%] top-[47%] h-[44px] -translate-y-1/2 rounded-full border border-cyan/15 bg-cyan/8" />
-            <div className="absolute bottom-[9%] left-[31%] top-[12%] w-[48px] rounded-full border border-cyan/15 bg-cyan/8" />
-            <div className="absolute left-[9%] top-[39%] hidden rounded-full border border-cyan/30 bg-bg/80 px-3 py-1 text-[11px] font-black text-cyan sm:block">MAIN CORRIDOR</div>
-            <div className="absolute bottom-3 left-3 rounded-full border border-line bg-bg/80 px-2 py-1 text-[10px] font-bold text-muted sm:bottom-4 sm:left-4 sm:px-3 sm:text-[11px]">정문·접수</div>
-            <div className="absolute right-3 top-3 rounded-full border border-line bg-bg/80 px-2 py-1 text-[10px] font-bold text-muted sm:right-4 sm:top-4 sm:px-3 sm:text-[11px]">Floor {focusedFloor}</div>
-            <div className="absolute left-3 top-3 z-20 rounded-xl border border-line bg-bg/90 p-2 shadow-xl sm:left-4 sm:top-4 sm:p-3">
-              <p className="text-[10px] font-bold uppercase tracking-wide text-muted">Estimated Navigation</p>
-              <div className="mt-2 flex items-center gap-2">
+            {!floorMapImage && focusedFloor === 3 && (
+              <svg className="pointer-events-none absolute inset-0 h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+                <path d="M8 18 H88 V84 H24 V73 H8 Z" fill="#eef8ff" stroke="#9bb1cf" strokeWidth="0.8" />
+                <path d="M13 47 H82" fill="none" stroke="rgba(47,103,178,0.18)" strokeWidth="7" strokeLinecap="round" />
+                <path d="M39 20 V79" fill="none" stroke="rgba(47,103,178,0.16)" strokeWidth="5" strokeLinecap="round" />
+                <rect x="14" y="24" width="19" height="16" rx="2" fill="#dceff9" stroke="#b3c6d8" />
+                <rect x="39" y="20" width="19" height="16" rx="2" fill="#dceff9" stroke="#b3c6d8" />
+                <rect x="60" y="27" width="24" height="17" rx="2" fill="#dceff9" stroke="#b3c6d8" />
+                <rect x="60" y="47" width="24" height="14" rx="2" fill="#dceff9" stroke="#b3c6d8" />
+                <rect x="59" y="65" width="25" height="16" rx="2" fill="#dceff9" stroke="#b3c6d8" />
+                <rect x="30" y="34" width="10" height="11" rx="2" fill="#f2f7ff" stroke="#9bb1cf" />
+                <text x="23.5" y="33" textAnchor="middle" fontSize="3.2" fontWeight="800" fill="#20324c">가정의학</text>
+                <text x="48.5" y="29" textAnchor="middle" fontSize="3.2" fontWeight="800" fill="#20324c">당뇨내분비</text>
+                <text x="72" y="37" textAnchor="middle" fontSize="3.2" fontWeight="800" fill="#20324c">이비인후</text>
+                <text x="72" y="56" textAnchor="middle" fontSize="3.2" fontWeight="800" fill="#20324c">눈건강</text>
+                <text x="71.5" y="74" textAnchor="middle" fontSize="3.2" fontWeight="800" fill="#20324c">관절척추</text>
+                <text x="43" y="42" textAnchor="middle" fontSize="3" fontWeight="800" fill="#2f67b2">E/V</text>
+              </svg>
+            )}
+            {!floorMapImage && focusedFloor !== 3 && (
+              <svg className="pointer-events-none absolute inset-0 h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+                <defs>
+                  <filter id="map-glow" x="-20%" y="-20%" width="140%" height="140%">
+                    <feGaussianBlur stdDeviation="0.8" result="blur" />
+                    <feMerge>
+                      <feMergeNode in="blur" />
+                      <feMergeNode in="SourceGraphic" />
+                    </feMerge>
+                  </filter>
+                </defs>
+                <path
+                  d="M7 18 H90 V36 H82 V47 H93 V79 H62 V90 H19 V76 H8 Z"
+                  fill="rgba(47,103,178,0.08)"
+                  stroke="rgba(113,170,230,0.34)"
+                  strokeWidth="0.7"
+                />
+                <path
+                  d="M10 47 H88"
+                  fill="none"
+                  stroke="rgba(80,151,224,0.34)"
+                  strokeWidth="6.8"
+                  strokeLinecap="round"
+                  filter="url(#map-glow)"
+                />
+                <path
+                  d="M35 15 V89"
+                  fill="none"
+                  stroke="rgba(80,151,224,0.28)"
+                  strokeWidth="5.4"
+                  strokeLinecap="round"
+                  filter="url(#map-glow)"
+                />
+                <path
+                  d="M16 26 H32 M40 26 H68 M74 26 H88 M16 66 H32 M40 66 H58 M66 66 H88 M51 18 V42 M51 54 V82 M70 18 V42 M70 54 V83"
+                  fill="none"
+                  stroke="rgba(180,214,250,0.2)"
+                  strokeWidth="0.65"
+                  strokeLinecap="round"
+                />
+                <rect x="31" y="41" width="8" height="13" rx="2" fill="rgba(47,103,178,0.22)" stroke="rgba(125,196,255,0.55)" strokeWidth="0.7" />
+                <path d="M31 41 L39 54 M39 41 L31 54" stroke="rgba(191,226,255,0.34)" strokeWidth="0.45" />
+              </svg>
+            )}
+            {!floorMapImage && <div className="absolute left-[9%] top-[39%] hidden rounded-full border border-cyan/30 bg-bg/80 px-3 py-1 text-[11px] font-black text-cyan sm:block">MAIN CORRIDOR</div>}
+            <div className="absolute bottom-3 left-3 rounded-full border border-line bg-bg/90 px-2 py-1 text-[10px] font-bold text-muted shadow-lg sm:bottom-4 sm:left-4 sm:px-3 sm:text-[11px]">
+              {routeLabel(selectedRoom, focusedFloor)}
+            </div>
+            <div className="absolute right-3 top-3 rounded-full border border-line bg-bg/90 px-2 py-1 text-[10px] font-bold text-muted shadow-lg sm:right-4 sm:top-4 sm:px-3 sm:text-[11px]">Floor {focusedFloor}</div>
+            <div className="absolute left-3 top-3 z-20 rounded-full border border-line bg-bg/90 px-2 py-1.5 shadow-xl sm:left-4 sm:top-4 sm:px-3">
+              <div className="flex items-center gap-2">
                 <Clock3 className="h-4 w-4 text-cyan" />
-                <span className="text-base font-black text-ink sm:text-lg">{totalMovingMinutes}분</span>
+                <span className="text-xs font-black text-ink sm:text-sm">{selectedRoom ? `${totalMovingMinutes}분` : "목적지 선택"}</span>
               </div>
-              <p className="mt-1 hidden text-[10px] font-bold text-muted sm:block">도보 {walkingMinutes}분 · 엘리베이터 {elevatorMinutes}분</p>
             </div>
             <div className="absolute bottom-4 right-4 z-20 hidden items-end gap-2 rounded-xl border border-line bg-bg/85 p-3 shadow-xl sm:flex">
               <div className="grid gap-1">
@@ -330,7 +531,7 @@ export function FullHospitalMap({ rooms, nextExam, mode }: Props) {
                   <button
                     key={floor}
                     type="button"
-                    onClick={() => setFocusedFloor(floor)}
+                    onClick={() => changeFloor(floor)}
                     className={`flex h-10 w-20 items-center justify-between rounded-lg border px-2 text-[11px] font-black transition ${
                       floor === focusedFloor ? "border-cyan bg-cyan/20 text-cyan" : "border-line bg-panel2 text-muted hover:border-cyan/50"
                     }`}
@@ -344,43 +545,91 @@ export function FullHospitalMap({ rooms, nextExam, mode }: Props) {
             </div>
 
             <svg className="pointer-events-none absolute inset-0 h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-              <polyline points={routePoints} fill="none" stroke="rgba(47,103,178,0.26)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" strokeDasharray="3 2" />
-              <circle cx="14" cy="78" r="1.7" fill="#2f67b2" opacity="0.9" />
-              <circle cx={selectedPoint.x} cy={selectedPoint.y} r="2.1" fill="#37d67a" opacity="0.95" />
+              {routePath && (
+                <>
+                  <path d={routePath} fill="none" stroke="rgba(6,18,37,0.26)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" opacity="0.18" />
+                  <path
+                    d={routePath}
+                    fill="none"
+                    stroke={navigationActive ? "rgba(49,201,149,0.95)" : "rgba(47,103,178,0.72)"}
+                    strokeWidth={navigationActive ? 1.45 : 1.15}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeDasharray={navigationActive ? "1 0" : "2.2 2.2"}
+                  />
+                  {navigationActive && (
+                    <path d={routePath} fill="none" stroke="rgba(49,201,149,0.34)" strokeWidth="4.2" strokeLinecap="round" strokeLinejoin="round" opacity="0.36" />
+                  )}
+                </>
+              )}
+              <circle cx={routeStartPoint.x} cy={routeStartPoint.y} r="2.1" fill="#2f67b2" opacity="0.95" />
+              {selectedRoomOnFocusedFloor && selectedPoint && <circle cx={selectedPoint.x} cy={selectedPoint.y} r="2.1" fill="#37d67a" opacity="0.95" />}
+              {navigationActive && routePointList.length > 0 && (
+                <circle r="1.45" fill="#31c995" stroke="#ffffff" strokeWidth="0.45">
+                  <animateMotion dur="2.8s" repeatCount="indefinite" path={routePath} />
+                </circle>
+              )}
             </svg>
+
+            {!selectedRoom && (
+              <div className="pointer-events-none absolute inset-x-4 bottom-4 z-20 rounded-xl border border-line bg-bg/90 p-3 shadow-2xl backdrop-blur sm:inset-x-auto sm:bottom-5 sm:left-5 sm:w-[310px]">
+                <div className="flex items-center gap-2">
+                  <MapPin className="h-4 w-4 text-cyan" />
+                  <p className="text-xs font-black text-ink">검사실을 선택하세요</p>
+                </div>
+                <p className="mt-1 text-[11px] font-semibold leading-4 text-muted">
+                  현재는 {floorNames[focusedFloor]} 전체 보기입니다. 지도 위 검사실을 누르면 정문에서 목적지까지의 경로가 표시됩니다.
+                </p>
+              </div>
+            )}
 
             {focusedRooms.map((room) => {
               const point = projectPoint(room);
-              const isSelected = room.id === selectedRoom.id;
+              const isSelected = selectedRoom?.id === room.id;
               const isNext = room.id === nextRoomId;
-              const wide = room.name.length > 6 || room.type === "exam";
-              const mobileImportant = isSelected || isNext || room.type === "core";
+              const isPdfMap = Boolean(floorMapImage);
+              const showLabel = !isPdfMap || isSelected || isNext || room.type === "core";
               return (
                 <button
                   key={room.id}
                   type="button"
-                  onClick={() => setSelectedRoomId(room.id)}
-                  className={`absolute -translate-x-1/2 -translate-y-1/2 rounded-xl border text-left shadow-xl transition hover:z-30 hover:scale-[1.04] ${
-                    mobileImportant
-                      ? wide
-                        ? "w-[104px] px-2 py-1.5 sm:w-[148px] sm:px-3 sm:py-2"
-                        : "w-[90px] px-2 py-1.5 sm:w-[116px] sm:px-3 sm:py-2"
-                      : "grid h-8 w-8 place-items-center px-0 py-0 sm:block sm:h-auto sm:place-items-stretch sm:px-3 sm:py-2 " + (wide ? "sm:w-[148px]" : "sm:w-[116px]")
+                  onClick={() => selectRoom(room)}
+                  className={`absolute -translate-x-1/2 -translate-y-1/2 border text-left shadow-xl transition hover:z-30 hover:scale-[1.04] ${
+                    isPdfMap
+                      ? showLabel
+                        ? "rounded-full px-2.5 py-1.5"
+                        : "grid h-6 w-6 place-items-center rounded-full px-0 py-0"
+                      : "rounded-xl px-3 py-2"
                   } ${isSelected ? "z-30 border-white bg-white text-bg ring-4 ring-cyan/25" : `${congestionStyle(room)} hover:border-white/70`} ${
                     isNext ? "animate-pulse" : ""
                   }`}
                   style={{ left: `${point.x}%`, top: `${point.y}%` }}
                 >
                   <span className="flex items-center gap-1">
-                    <CircleDot className={`h-3 w-3 shrink-0 ${isSelected ? "text-bg" : ""}`} />
-                    <span className={`${mobileImportant ? "block" : "hidden sm:block"} truncate text-[10px] font-black sm:text-[11px]`}>{room.name}</span>
+                    <CircleDot className={`${showLabel ? "h-3 w-3" : "h-2.5 w-2.5"} shrink-0 ${isSelected ? "text-bg" : ""}`} />
+                    <span className={`${showLabel ? "block" : "hidden"} max-w-[96px] truncate text-[9px] font-black sm:max-w-[132px] sm:text-[10px]`}>{room.name}</span>
                   </span>
-                  <span className={`mt-1 ${mobileImportant ? "block" : "hidden"} text-[9px] font-bold sm:block sm:text-[10px] ${isSelected ? "text-bg/70" : "text-muted"}`}>
+                  <span className={`mt-1 ${showLabel ? "hidden sm:block" : "hidden"} text-[9px] font-bold sm:text-[10px] ${isSelected ? "text-bg/70" : "text-muted"}`}>
                     {roomTypeLabel(room)} · {congestionLabel(room)} · {room.queue}명
                   </span>
                 </button>
               );
             })}
+          </div>
+          <div className="mt-2 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-line bg-panel2 px-3 py-2">
+            <div className="flex flex-wrap gap-2 text-[10px] font-bold text-muted sm:text-[11px]">
+              <span className="flex items-center gap-1"><i className="h-2 w-2 rounded-full bg-green" />여유 0~10명</span>
+              <span className="flex items-center gap-1"><i className="h-2 w-2 rounded-full bg-yellow" />보통 11~25명</span>
+              <span className="flex items-center gap-1"><i className="h-2 w-2 rounded-full bg-red" />혼잡 26명 이상</span>
+              <span className="flex items-center gap-1"><i className="h-2 w-2 rounded-full bg-cyan" />엘리베이터</span>
+            </div>
+            <p className="text-[10px] font-bold text-muted sm:text-[11px]">
+              {selectedRoom
+                ? navigationActive
+                  ? `길찾기 중: ${routeLabel(selectedRoom, focusedFloor)} → ${selectedRoom.name}`
+                  : `미리보기 경로: ${routeLabel(selectedRoom, focusedFloor)} → ${selectedRoom.name}`
+                : "검사실을 선택하면 경로선이 표시됩니다."}
+            </p>
           </div>
         </article>
 
@@ -390,15 +639,19 @@ export function FullHospitalMap({ rooms, nextExam, mode }: Props) {
               <LocateFixed className="h-4 w-4 text-cyan" />
               <p className="text-sm font-bold text-ink">선택 위치</p>
             </div>
-            <h3 className="mt-2 text-xl font-black text-ink sm:mt-3 sm:text-2xl">{selectedRoom.name}</h3>
-            <p className="mt-1 text-xs font-bold text-cyan">{selectedRoom.floor}층 · {roomTypeLabel(selectedRoom)} · 대기 {selectedRoom.queue}명</p>
-            <p className="mt-2 line-clamp-2 text-xs font-semibold leading-5 text-muted sm:mt-3 sm:line-clamp-none">{roomHints[selectedRoom.id] ?? "중앙 복도와 엘리베이터 코어를 기준으로 안내되는 병원 전체 지도 위치입니다."}</p>
+            <h3 className="mt-2 text-xl font-black text-ink sm:mt-3 sm:text-2xl">{selectedRoom ? selectedRoom.name : floorNames[focusedFloor]}</h3>
+            <p className="mt-1 text-xs font-bold text-cyan">
+              {selectedRoom ? `${selectedRoom.floor}층 · ${roomTypeLabel(selectedRoom)} · 대기 ${selectedRoom.queue}명` : "검사실을 선택하면 상세 안내와 경로가 표시됩니다."}
+            </p>
+            <p className="mt-2 line-clamp-2 text-xs font-semibold leading-5 text-muted sm:mt-3 sm:line-clamp-none">
+              {selectedRoom ? roomHints[selectedRoom.id] ?? "중앙 복도와 엘리베이터 코어를 기준으로 안내되는 병원 전체 지도 위치입니다." : floorDescriptions[focusedFloor]}
+            </p>
           </div>
 
           <div className="grid grid-cols-3 gap-2">
-            <MetricCard label="예상 이동" value={`${totalMovingMinutes}분`} />
-            <MetricCard label="층간 이동" value={selectedRoom.floor === 1 ? "없음" : `${selectedRoom.floor}층`} />
-            <MetricCard label="혼잡도" value={congestionLabel(selectedRoom)} />
+            <MetricCard label="예상 이동" value={selectedRoom ? `${totalMovingMinutes}분` : "-"} />
+            <MetricCard label="층간 이동" value={selectedRoom ? (selectedRoom.floor === 1 ? "없음" : `${selectedRoom.floor}층`) : `${focusedFloor}층`} />
+            <MetricCard label="혼잡도" value={selectedRoom ? congestionLabel(selectedRoom) : "층 보기"} />
           </div>
 
           <div className="rounded-xl border border-line bg-panel2 p-4">
@@ -407,10 +660,32 @@ export function FullHospitalMap({ rooms, nextExam, mode }: Props) {
               <p className="text-sm font-bold text-ink">길 안내 요약</p>
             </div>
             <div className="mt-3 grid gap-2">
-              <RouteStep index={1} text="자동 체크인 완료" />
-              <RouteStep index={2} text={`${selectedRoom.floor === 1 ? "1층 중앙 복도" : `중앙 엘리베이터로 ${selectedRoom.floor}층 이동`}`} />
-              <RouteStep index={3} text={`${selectedRoom.name} 도착 후 대기 등록`} active />
+              {routeGuideSteps.map((step, index) => (
+                <GuideStep key={`${step.label}-${step.value}`} index={index + 1} label={step.label} text={step.value} Icon={step.icon} active={Boolean(selectedRoom) && index === routeGuideSteps.length - 1} />
+              ))}
             </div>
+            <button
+              type="button"
+              onClick={startNavigation}
+              disabled={!selectedRoom}
+              className={`mt-3 inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg border text-sm font-bold transition ${
+                selectedRoom ? "border-cyan/40 bg-cyan/10 text-cyan hover:bg-cyan/20" : "cursor-not-allowed border-line bg-panel2 text-muted"
+              }`}
+            >
+              <Navigation className="h-4 w-4" />
+              {selectedRoom ? (navigationActive ? "길찾기 진행 중" : "길찾기 시작") : "검사실 선택 필요"}
+            </button>
+            {navigationActive && selectedRoom && (
+              <div className="mt-3 rounded-lg border border-green/40 bg-green/10 p-3">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4 text-green" />
+                  <p className="text-xs font-black text-green">이동 안내 시작</p>
+                </div>
+                <p className="mt-1 text-xs font-semibold leading-5 text-muted">
+                  현재 위치에서 중앙 복도를 따라 이동한 뒤 {selectedRoom.floor === 1 ? selectedRoom.name : `엘리베이터로 ${selectedRoom.floor}층 이동 후 ${selectedRoom.name}`}까지 안내합니다. 예상 이동 시간은 {totalMovingMinutes}분입니다.
+                </p>
+              </div>
+            )}
           </div>
 
           <div className="hidden rounded-xl border border-green/30 bg-green/10 p-4 sm:block">
@@ -445,16 +720,26 @@ function Legend({ label, className }: { label: string; className: string }) {
   );
 }
 
-function Badge({ text, tone }: { text: string; tone: "cyan" | "green" }) {
-  const classes = tone === "cyan" ? "border-cyan/40 bg-cyan/10 text-cyan" : "border-green/40 bg-green/10 text-green";
+function Badge({ text, tone }: { text: string; tone: "cyan" | "green" | "yellow" }) {
+  const classes =
+    tone === "cyan"
+      ? "border-cyan/40 bg-cyan/10 text-cyan"
+      : tone === "yellow"
+        ? "border-yellow/40 bg-yellow/10 text-yellow"
+        : "border-green/40 bg-green/10 text-green";
   return <span className={`rounded-md border px-2 py-1 ${classes}`}>{text}</span>;
 }
 
-function RouteStep({ index, text, active = false }: { index: number; text: string; active?: boolean }) {
+function GuideStep({ index, label, text, Icon, active = false }: { index: number; label: string; text: string; Icon: LucideIcon; active?: boolean }) {
   return (
     <div className={`flex items-center gap-3 rounded-lg border p-3 ${active ? "border-green/40 bg-green/10" : "border-line bg-bg"}`}>
-      <span className={`grid h-6 w-6 shrink-0 place-items-center rounded-full text-xs font-black ${active ? "bg-green text-bg" : "bg-cyan/15 text-cyan"}`}>{index}</span>
-      <span className="text-xs font-bold text-ink">{text}</span>
+      <span className={`grid h-7 w-7 shrink-0 place-items-center rounded-full text-xs font-black ${active ? "bg-green text-bg" : "bg-cyan/15 text-cyan"}`}>
+        <Icon className="h-3.5 w-3.5" />
+      </span>
+      <span className="min-w-0">
+        <span className="block text-[10px] font-black uppercase tracking-wide text-muted">{index}. {label}</span>
+        <span className="block truncate text-xs font-bold text-ink">{text}</span>
+      </span>
     </div>
   );
 }

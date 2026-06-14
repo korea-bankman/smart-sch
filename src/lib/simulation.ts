@@ -115,17 +115,35 @@ export function computeMetrics(rooms: Room[], patients: Patient[], aiEnabled: bo
   const busiestRoom = [...examRooms].sort((a, b) => b.queue - a.queue)[0];
   const bottleneckRooms = [...examRooms].sort((a, b) => b.queue - a.queue).slice(0, 3);
   const queueValues = examRooms.map((room) => room.queue);
-  const afterQueues = examRooms.map((room) => {
+  const afterQueues = aiEnabled ? examRooms.map((room) => {
     const assigned = patients.filter((patient) => patient.aiOrder[0] && examToRoom[patient.aiOrder[0]] === room.id).length;
     return Math.max(0, room.queue - Math.round(assigned * 0.16));
-  });
+  }) : queueValues;
+  const patientsReassigned = aiEnabled ? patients.filter((patient) => patient.fixedOrder.join("|") !== patient.aiOrder.join("|")).length : 0;
+  const reassignmentRate = patients.length > 0 ? (patientsReassigned / patients.length) * 100 : 0;
+  const hottestBefore = Math.max(0, ...queueValues);
+  const hottestAfter = Math.max(0, ...afterQueues);
+  const bottleneckReliefRate = hottestBefore > 0 ? ((hottestBefore - hottestAfter) / hottestBefore) * 100 : 0;
   const capacityMinutes = examRooms.reduce((sum, room) => sum + 60 / Math.max(1, room.examMinutes), 0);
   const demandBefore = patients.reduce((sum, patient) => sum + patient.fixedOrder.length, 0) / 8;
   const demandAfter = patients.reduce((sum, patient) => sum + patient.aiOrder.length, 0) / 7.1;
   const utilizationBefore = Math.min(96, (demandBefore / Math.max(1, capacityMinutes)) * 100);
-  const utilizationAfter = Math.min(98, utilizationBefore + Math.max(4, reductionRate * 0.62));
+  const utilizationAfter = aiEnabled ? Math.min(98, utilizationBefore + Math.max(4, reductionRate * 0.62)) : utilizationBefore;
   const utilizationIncreaseRate = utilizationBefore > 0 ? ((utilizationAfter - utilizationBefore) / utilizationBefore) * 100 : 0;
   const averageTurnover = average(examRooms.map((room) => 60 / Math.max(1, room.examMinutes)));
+  const throughputGain = aiEnabled ? Math.max(0, (utilizationAfter - utilizationBefore) * 0.78 + reductionRate * 0.18) : 0;
+  const riskPatientsBefore = patients.filter((patient) => patient.before.total >= 120 || patient.before.waiting >= 80).length;
+  const riskPatientsAfter = patients.filter((patient) => {
+    const current = aiEnabled ? patient.after : patient.before;
+    return current.total >= 120 || current.waiting >= 80;
+  }).length;
+  const riskReductionRate = riskPatientsBefore > 0 ? ((riskPatientsBefore - riskPatientsAfter) / riskPatientsBefore) * 100 : 0;
+  const accessibilityPatients = patients.filter((patient) => patient.mode === "elderly" || patient.mode === "wheelchair");
+  const accessibilityDelay = aiEnabled ? average(accessibilityPatients.map((patient) => {
+    const current = aiEnabled ? patient.after : patient.before;
+    return Math.max(0, current.walking - patient.before.walking);
+  })) : 0;
+  const queueBalanceScore = Math.max(0, Math.min(100, 100 - variance(afterQueues) / Math.max(1, average(afterQueues) + 1)));
 
   return {
     currentPatients: patients.length,
@@ -142,6 +160,15 @@ export function computeMetrics(rooms: Room[], patients: Patient[], aiEnabled: bo
     utilizationIncreaseRate: round(Math.max(0, utilizationIncreaseRate)),
     complaintReduction: round(Math.max(0, reductionRate * 1.45 + waitingReductionRate * 0.35)),
     averageTurnover: round(averageTurnover),
+    patientsReassigned,
+    reassignmentRate: round(reassignmentRate),
+    throughputGain: round(throughputGain),
+    bottleneckReliefRate: round(Math.max(0, bottleneckReliefRate)),
+    riskPatientsBefore,
+    riskPatientsAfter,
+    riskReductionRate: round(Math.max(0, riskReductionRate)),
+    accessibilityDelay: round(accessibilityDelay),
+    queueBalanceScore: round(queueBalanceScore),
     queueVarianceBefore: variance(queueValues),
     queueVarianceAfter: variance(afterQueues),
     busiestRoom,

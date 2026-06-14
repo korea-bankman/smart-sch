@@ -265,6 +265,7 @@ export default function App() {
                       patient={selectedPatient}
                       patients={patients}
                       selectedPatientId={selectedPatientId}
+                      aiEnabled={aiEnabled}
                       onSelect={setSelectedPatientId}
                       onOpenDetail={() => setPatientDetailOpen(true)}
                     />
